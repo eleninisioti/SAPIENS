@@ -1,0 +1,10 @@
+name: wordcraft
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - numpy
+  - matplotlib
+  - pandas
+  - pytorch
+  - torchvision
