@@ -1,0 +1,966 @@
+{
+    "entities": {
+        "a_base_a_0": {
+            "id": 0,
+            "recipes": []
+        },
+        "a_base_b_0": {
+            "id": 1,
+            "recipes": []
+        },
+        "a_base_c_0": {
+            "id": 2,
+            "recipes": []
+        },
+        "a_1": {
+            "id": 3,
+            "recipes": [
+                [
+                    "a_base_c_0",
+                    "a_base_c_0"
+                ]
+            ]
+        },
+        "a_2": {
+            "id": 4,
+            "recipes": [
+                [
+                    "a_1",
+                    "a_base_c_0"
+                ]
+            ]
+        },
+        "a_3": {
+            "id": 5,
+            "recipes": [
+                [
+                    "a_2",
+                    "a_base_b_0"
+                ]
+            ]
+        },
+        "a_4": {
+            "id": 6,
+            "recipes": [
+                [
+                    "a_3",
+                    "a_base_b_0"
+                ]
+            ]
+        },
+        "a_5": {
+            "id": 7,
+            "recipes": [
+                [
+                    "a_4",
+                    "a_base_c_0"
+                ]
+            ]
+        },
+        "a_6": {
+            "id": 8,
+            "recipes": [
+                [
+                    "a_5",
+                    "a_base_a_0"
+                ]
+            ]
+        },
+        "a_7": {
+            "id": 9,
+            "recipes": [
+                [
+                    "a_6",
+                    "a_base_b_0"
+                ]
+            ]
+        },
+        "a_8": {
+            "id": 10,
+            "recipes": [
+                [
+                    "a_7",
+                    "a_base_c_0"
+                ]
+            ]
+        },
+        "a_9": {
+            "id": 11,
+            "recipes": [
+                [
+                    "a_8",
+                    "a_base_c_0"
+                ]
+            ]
+        },
+        "_dist_a_0": {
+            "id": 12,
+            "recipes": []
+        },
+        "_dist_b_0": {
+            "id": 13,
+            "recipes": []
+        },
+        "_dist_c_0": {
+            "id": 14,
+            "recipes": []
+        },
+        "_dist_d_0": {
+            "id": 15,
+            "recipes": []
+        },
+        "_dist_e_0": {
+            "id": 16,
+            "recipes": []
+        },
+        "_dist_f_0": {
+            "id": 17,
+            "recipes": []
+        },
+        "_dist_g_0": {
+            "id": 18,
+            "recipes": []
+        },
+        "_dist_h_0": {
+            "id": 19,
+            "recipes": []
+        },
+        "b_base_a_0": {
+            "id": 20,
+            "recipes": []
+        },
+        "b_base_b_0": {
+            "id": 21,
+            "recipes": []
+        },
+        "b_base_c_0": {
+            "id": 22,
+            "recipes": []
+        },
+        "b_1": {
+            "id": 23,
+            "recipes": [
+                [
+                    "b_base_c_0",
+                    "b_base_c_0"
+                ]
+            ]
+        },
+        "b_2": {
+            "id": 24,
+            "recipes": [
+                [
+                    "b_1",
+                    "b_base_c_0"
+                ]
+            ]
+        },
+        "b_3": {
+            "id": 25,
+            "recipes": [
+                [
+                    "b_2",
+                    "b_base_b_0"
+                ]
+            ]
+        },
+        "b_4": {
+            "id": 26,
+            "recipes": [
+                [
+                    "b_3",
+                    "b_base_b_0"
+                ]
+            ]
+        },
+        "b_5": {
+            "id": 27,
+            "recipes": [
+                [
+                    "b_4",
+                    "b_base_c_0"
+                ]
+            ]
+        },
+        "b_6": {
+            "id": 28,
+            "recipes": [
+                [
+                    "b_5",
+                    "b_base_a_0"
+                ]
+            ]
+        },
+        "b_7": {
+            "id": 29,
+            "recipes": [
+                [
+                    "b_6",
+                    "b_base_b_0"
+                ]
+            ]
+        },
+        "b_8": {
+            "id": 30,
+            "recipes": [
+                [
+                    "b_7",
+                    "b_base_c_0"
+                ]
+            ]
+        },
+        "b_9": {
+            "id": 31,
+            "recipes": [
+                [
+                    "b_8",
+                    "b_base_c_0"
+                ]
+            ]
+        },
+        "c_base_a_0": {
+            "id": 32,
+            "recipes": []
+        },
+        "c_base_b_0": {
+            "id": 33,
+            "recipes": []
+        },
+        "c_base_c_0": {
+            "id": 34,
+            "recipes": []
+        },
+        "c_1": {
+            "id": 35,
+            "recipes": [
+                [
+                    "c_base_c_0",
+                    "c_base_c_0"
+                ]
+            ]
+        },
+        "c_2": {
+            "id": 36,
+            "recipes": [
+                [
+                    "c_1",
+                    "c_base_c_0"
+                ]
+            ]
+        },
+        "c_3": {
+            "id": 37,
+            "recipes": [
+                [
+                    "c_2",
+                    "c_base_b_0"
+                ]
+            ]
+        },
+        "c_4": {
+            "id": 38,
+            "recipes": [
+                [
+                    "c_3",
+                    "c_base_b_0"
+                ]
+            ]
+        },
+        "c_5": {
+            "id": 39,
+            "recipes": [
+                [
+                    "c_4",
+                    "c_base_c_0"
+                ]
+            ]
+        },
+        "c_6": {
+            "id": 40,
+            "recipes": [
+                [
+                    "c_5",
+                    "c_base_a_0"
+                ]
+            ]
+        },
+        "c_7": {
+            "id": 41,
+            "recipes": [
+                [
+                    "c_6",
+                    "c_base_b_0"
+                ]
+            ]
+        },
+        "c_8": {
+            "id": 42,
+            "recipes": [
+                [
+                    "c_7",
+                    "c_base_c_0"
+                ]
+            ]
+        },
+        "c_9": {
+            "id": 43,
+            "recipes": [
+                [
+                    "c_8",
+                    "c_base_c_0"
+                ]
+            ]
+        },
+        "d_base_a_0": {
+            "id": 44,
+            "recipes": []
+        },
+        "d_base_b_0": {
+            "id": 45,
+            "recipes": []
+        },
+        "d_base_c_0": {
+            "id": 46,
+            "recipes": []
+        },
+        "d_1": {
+            "id": 47,
+            "recipes": [
+                [
+                    "d_base_c_0",
+                    "d_base_c_0"
+                ]
+            ]
+        },
+        "d_2": {
+            "id": 48,
+            "recipes": [
+                [
+                    "d_1",
+                    "d_base_c_0"
+                ]
+            ]
+        },
+        "d_3": {
+            "id": 49,
+            "recipes": [
+                [
+                    "d_2",
+                    "d_base_b_0"
+                ]
+            ]
+        },
+        "d_4": {
+            "id": 50,
+            "recipes": [
+                [
+                    "d_3",
+                    "d_base_b_0"
+                ]
+            ]
+        },
+        "d_5": {
+            "id": 51,
+            "recipes": [
+                [
+                    "d_4",
+                    "d_base_c_0"
+                ]
+            ]
+        },
+        "d_6": {
+            "id": 52,
+            "recipes": [
+                [
+                    "d_5",
+                    "d_base_a_0"
+                ]
+            ]
+        },
+        "d_7": {
+            "id": 53,
+            "recipes": [
+                [
+                    "d_6",
+                    "d_base_b_0"
+                ]
+            ]
+        },
+        "d_8": {
+            "id": 54,
+            "recipes": [
+                [
+                    "d_7",
+                    "d_base_c_0"
+                ]
+            ]
+        },
+        "d_9": {
+            "id": 55,
+            "recipes": [
+                [
+                    "d_8",
+                    "d_base_c_0"
+                ]
+            ]
+        },
+        "e_base_a_0": {
+            "id": 56,
+            "recipes": []
+        },
+        "e_base_b_0": {
+            "id": 57,
+            "recipes": []
+        },
+        "e_base_c_0": {
+            "id": 58,
+            "recipes": []
+        },
+        "e_1": {
+            "id": 59,
+            "recipes": [
+                [
+                    "e_base_c_0",
+                    "e_base_c_0"
+                ]
+            ]
+        },
+        "e_2": {
+            "id": 60,
+            "recipes": [
+                [
+                    "e_1",
+                    "e_base_c_0"
+                ]
+            ]
+        },
+        "e_3": {
+            "id": 61,
+            "recipes": [
+                [
+                    "e_2",
+                    "e_base_b_0"
+                ]
+            ]
+        },
+        "e_4": {
+            "id": 62,
+            "recipes": [
+                [
+                    "e_3",
+                    "e_base_b_0"
+                ]
+            ]
+        },
+        "e_5": {
+            "id": 63,
+            "recipes": [
+                [
+                    "e_4",
+                    "e_base_c_0"
+                ]
+            ]
+        },
+        "e_6": {
+            "id": 64,
+            "recipes": [
+                [
+                    "e_5",
+                    "e_base_a_0"
+                ]
+            ]
+        },
+        "e_7": {
+            "id": 65,
+            "recipes": [
+                [
+                    "e_6",
+                    "e_base_b_0"
+                ]
+            ]
+        },
+        "e_8": {
+            "id": 66,
+            "recipes": [
+                [
+                    "e_7",
+                    "e_base_c_0"
+                ]
+            ]
+        },
+        "e_9": {
+            "id": 67,
+            "recipes": [
+                [
+                    "e_8",
+                    "e_base_c_0"
+                ]
+            ]
+        },
+        "f_base_a_0": {
+            "id": 68,
+            "recipes": []
+        },
+        "f_base_b_0": {
+            "id": 69,
+            "recipes": []
+        },
+        "f_base_c_0": {
+            "id": 70,
+            "recipes": []
+        },
+        "f_1": {
+            "id": 71,
+            "recipes": [
+                [
+                    "f_base_c_0",
+                    "f_base_c_0"
+                ]
+            ]
+        },
+        "f_2": {
+            "id": 72,
+            "recipes": [
+                [
+                    "f_1",
+                    "f_base_c_0"
+                ]
+            ]
+        },
+        "f_3": {
+            "id": 73,
+            "recipes": [
+                [
+                    "f_2",
+                    "f_base_b_0"
+                ]
+            ]
+        },
+        "f_4": {
+            "id": 74,
+            "recipes": [
+                [
+                    "f_3",
+                    "f_base_b_0"
+                ]
+            ]
+        },
+        "f_5": {
+            "id": 75,
+            "recipes": [
+                [
+                    "f_4",
+                    "f_base_c_0"
+                ]
+            ]
+        },
+        "f_6": {
+            "id": 76,
+            "recipes": [
+                [
+                    "f_5",
+                    "f_base_a_0"
+                ]
+            ]
+        },
+        "f_7": {
+            "id": 77,
+            "recipes": [
+                [
+                    "f_6",
+                    "f_base_b_0"
+                ]
+            ]
+        },
+        "f_8": {
+            "id": 78,
+            "recipes": [
+                [
+                    "f_7",
+                    "f_base_c_0"
+                ]
+            ]
+        },
+        "f_9": {
+            "id": 79,
+            "recipes": [
+                [
+                    "f_8",
+                    "f_base_c_0"
+                ]
+            ]
+        },
+        "g_base_a_0": {
+            "id": 80,
+            "recipes": []
+        },
+        "g_base_b_0": {
+            "id": 81,
+            "recipes": []
+        },
+        "g_base_c_0": {
+            "id": 82,
+            "recipes": []
+        },
+        "g_1": {
+            "id": 83,
+            "recipes": [
+                [
+                    "g_base_c_0",
+                    "g_base_c_0"
+                ]
+            ]
+        },
+        "g_2": {
+            "id": 84,
+            "recipes": [
+                [
+                    "g_1",
+                    "g_base_c_0"
+                ]
+            ]
+        },
+        "g_3": {
+            "id": 85,
+            "recipes": [
+                [
+                    "g_2",
+                    "g_base_b_0"
+                ]
+            ]
+        },
+        "g_4": {
+            "id": 86,
+            "recipes": [
+                [
+                    "g_3",
+                    "g_base_b_0"
+                ]
+            ]
+        },
+        "g_5": {
+            "id": 87,
+            "recipes": [
+                [
+                    "g_4",
+                    "g_base_c_0"
+                ]
+            ]
+        },
+        "g_6": {
+            "id": 88,
+            "recipes": [
+                [
+                    "g_5",
+                    "g_base_a_0"
+                ]
+            ]
+        },
+        "g_7": {
+            "id": 89,
+            "recipes": [
+                [
+                    "g_6",
+                    "g_base_b_0"
+                ]
+            ]
+        },
+        "g_8": {
+            "id": 90,
+            "recipes": [
+                [
+                    "g_7",
+                    "g_base_c_0"
+                ]
+            ]
+        },
+        "g_9": {
+            "id": 91,
+            "recipes": [
+                [
+                    "g_8",
+                    "g_base_c_0"
+                ]
+            ]
+        },
+        "h_base_a_0": {
+            "id": 92,
+            "recipes": []
+        },
+        "h_base_b_0": {
+            "id": 93,
+            "recipes": []
+        },
+        "h_base_c_0": {
+            "id": 94,
+            "recipes": []
+        },
+        "h_1": {
+            "id": 95,
+            "recipes": [
+                [
+                    "h_base_c_0",
+                    "h_base_c_0"
+                ]
+            ]
+        },
+        "h_2": {
+            "id": 96,
+            "recipes": [
+                [
+                    "h_1",
+                    "h_base_c_0"
+                ]
+            ]
+        },
+        "h_3": {
+            "id": 97,
+            "recipes": [
+                [
+                    "h_2",
+                    "h_base_b_0"
+                ]
+            ]
+        },
+        "h_4": {
+            "id": 98,
+            "recipes": [
+                [
+                    "h_3",
+                    "h_base_b_0"
+                ]
+            ]
+        },
+        "h_5": {
+            "id": 99,
+            "recipes": [
+                [
+                    "h_4",
+                    "h_base_c_0"
+                ]
+            ]
+        },
+        "h_6": {
+            "id": 100,
+            "recipes": [
+                [
+                    "h_5",
+                    "h_base_a_0"
+                ]
+            ]
+        },
+        "h_7": {
+            "id": 101,
+            "recipes": [
+                [
+                    "h_6",
+                    "h_base_b_0"
+                ]
+            ]
+        },
+        "h_8": {
+            "id": 102,
+            "recipes": [
+                [
+                    "h_7",
+                    "h_base_c_0"
+                ]
+            ]
+        },
+        "h_9": {
+            "id": 103,
+            "recipes": [
+                [
+                    "h_8",
+                    "h_base_c_0"
+                ]
+            ]
+        },
+        "i_base_a_0": {
+            "id": 104,
+            "recipes": []
+        },
+        "i_base_b_0": {
+            "id": 105,
+            "recipes": []
+        },
+        "i_base_c_0": {
+            "id": 106,
+            "recipes": []
+        },
+        "i_1": {
+            "id": 107,
+            "recipes": [
+                [
+                    "i_base_c_0",
+                    "i_base_c_0"
+                ]
+            ]
+        },
+        "i_2": {
+            "id": 108,
+            "recipes": [
+                [
+                    "i_1",
+                    "i_base_c_0"
+                ]
+            ]
+        },
+        "i_3": {
+            "id": 109,
+            "recipes": [
+                [
+                    "i_2",
+                    "i_base_b_0"
+                ]
+            ]
+        },
+        "i_4": {
+            "id": 110,
+            "recipes": [
+                [
+                    "i_3",
+                    "i_base_b_0"
+                ]
+            ]
+        },
+        "i_5": {
+            "id": 111,
+            "recipes": [
+                [
+                    "i_4",
+                    "i_base_c_0"
+                ]
+            ]
+        },
+        "i_6": {
+            "id": 112,
+            "recipes": [
+                [
+                    "i_5",
+                    "i_base_a_0"
+                ]
+            ]
+        },
+        "i_7": {
+            "id": 113,
+            "recipes": [
+                [
+                    "i_6",
+                    "i_base_b_0"
+                ]
+            ]
+        },
+        "i_8": {
+            "id": 114,
+            "recipes": [
+                [
+                    "i_7",
+                    "i_base_c_0"
+                ]
+            ]
+        },
+        "i_9": {
+            "id": 115,
+            "recipes": [
+                [
+                    "i_8",
+                    "i_base_c_0"
+                ]
+            ]
+        },
+        "j_base_a_0": {
+            "id": 116,
+            "recipes": []
+        },
+        "j_base_b_0": {
+            "id": 117,
+            "recipes": []
+        },
+        "j_base_c_0": {
+            "id": 118,
+            "recipes": []
+        },
+        "j_2": {
+            "id": 119,
+            "recipes": [
+                [
+                    "j_base_c_0",
+                    "j_base_c_0"
+                ]
+            ]
+        },
+        "j_8": {
+            "id": 120,
+            "recipes": [
+                [
+                    "j_2",
+                    "j_base_c_0"
+                ]
+            ]
+        },
+        "j_10": {
+            "id": 121,
+            "recipes": [
+                [
+                    "j_8",
+                    "j_base_b_0"
+                ]
+            ]
+        },
+        "j_12": {
+            "id": 122,
+            "recipes": [
+                [
+                    "j_10",
+                    "j_base_b_0"
+                ]
+            ]
+        },
+        "j_14": {
+            "id": 123,
+            "recipes": [
+                [
+                    "j_12",
+                    "j_base_c_0"
+                ]
+            ]
+        },
+        "j_16": {
+            "id": 124,
+            "recipes": [
+                [
+                    "j_14",
+                    "j_base_a_0"
+                ]
+            ]
+        },
+        "j_18": {
+            "id": 125,
+            "recipes": [
+                [
+                    "j_14",
+                    "j_base_b_0"
+                ]
+            ]
+        },
+        "j_20": {
+            "id": 126,
+            "recipes": [
+                [
+                    "j_18",
+                    "j_base_c_0"
+                ]
+            ]
+        },
+        "j_22": {
+            "id": 127,
+            "recipes": [
+                [
+                    "j_20",
+                    "j_base_c_0"
+                ]
+            ]
+        }
+    }
+}
