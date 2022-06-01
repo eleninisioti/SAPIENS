@@ -15,7 +15,7 @@ recipe_book_info = {"single_path": {"path": "recipe_books/single_path.json",
                                       "early_step": 500000,
                                       "best_paths": ["a_8", "b_8", "c_10"]},
 
-                    "bestoften_paths": {"path": "recipe_books/bestof10_paths.json",
+                    "bestoften_paths": {"path": "recipe_books/bestoften_paths.json",
                                     "npaths": 10,
                                     "best_reward": 72,
                                     "max_steps": 3500000,
