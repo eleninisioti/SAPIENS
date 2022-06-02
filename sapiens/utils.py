@@ -32,7 +32,7 @@ def indiv_mnemonic_metrics(agent):
     return diversity
 
 
-def group_mnemonic_metrics(agents):
+def group_mnemonic_metrics(agents, measure_intergroup_alignment):
     """ Computes mnemonic metrics for a single agent.
 
     The group mnemonic metrics include diversity (number of unique tuples in the concatenated

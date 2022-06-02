@@ -63,6 +63,7 @@ class RecipeBook:
         self.train_ratio = train_ratio
         self.set_seed(seed)
 
+        self.data_path = data_path
         self._rawdata = self._load_data(data_path)
         self.max_depth = max_depth
 

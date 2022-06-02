@@ -1,0 +1,31 @@
+L_s: 1
+batch_size: 64
+buffer_size: 5000
+collect_metrics_period: 500
+gamma: 0.9
+learning_rate: 0.0001
+measure_intergroup_alignment: false
+measure_mnemonic: false
+migrate_rate: 0.01
+n_agents: 10
+n_neighbors: 1
+n_subgroups: 1
+n_trials: 1
+num_layers: 2
+num_neurons: 64
+p_s: 1
+phase_idx: 0
+phase_periods:
+- 10
+- 10
+phases:
+- no-sharing
+- fully-connected
+policy: MlpPolicy
+project_path: projects/paper/main/task_single_path/shape_no-sharing
+recipe_path: lib/wordcraft/recipe_books/single_path.json
+seed: 0
+shape: no-sharing
+timer_dynamic_boyd: 0
+total_episodes: 500
+visit_duration: 10

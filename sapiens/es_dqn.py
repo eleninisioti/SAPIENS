@@ -1,16 +1,10 @@
-import sys
-import os
-import numpy as np
-import torch as th
-from torch.nn import functional as F
+
 import random
 import copy
 
-from lib.stable_baselines3.common import logger
 from lib.stable_baselines3.common.utils import get_linear_fn
 from lib.stable_baselines3 import DQN
 from lib.stable_baselines3.common.buffers import ReplayBuffer
-from source.prioritised_buffer import PrioritisedBuffer
 
 
 class DES_DQN(DQN):
@@ -58,17 +52,15 @@ class DES_DQN(DQN):
                  ):
         self.idx = idx
         self.neighbors = []
-        self.diversities = []
-        self.buffer_uniformities = []
-        self.buffer_modalities = []
-        self.early_stop = False
-        self.group_uniformities = []
-        self.group_diversities = []
-        self.group_occurs = []
         self.visiting = False
         self.under_visit = False
         self.sent_messages = []
         self.L_s = L_s
+
+        self.diversities = []
+        self.intragroup_alignments = []
+        self.group_diversities = []
+        self.group_occurs = []
 
         super().__init__(
             policy=policy,

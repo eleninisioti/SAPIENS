@@ -1,13 +1,13 @@
 import os
 import time
 import random
+import yaml
 
 from lib.stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 from sapiens.es_dqn import DES_DQN
 from lib.stable_baselines3.common.utils import set_random_seed
 from sapiens.utils import group_mnemonic_metrics, indiv_mnemonic_metrics
 from sapiens.topologies import init_topology, update_topology_periodic, update_topology_Boyd
-from lib.wordcraft.utils.task_utils import recipe_book_info
 
 class Sapiens:
     """
@@ -24,23 +24,23 @@ class Sapiens:
     eval_envs: list of gym enviroments
         for each agent, the evaluation environment
 
-    train_config: dict
-        training configuration
-
     p_s: float
         probability of sharing experience at the end of an episode
     """
 
-    def __init__(self, train_envs, eval_envs, n_agents, n_neighbors, n_subgroups, phase_periods, project_path,
-                 shape, total_timesteps, buffer_size=5000, batch_size=128, num_neurons=64, num_layers=2,
-                 visit_duration=10,
-                 seed=0, gamma=0.9, L_s=1, learning_rate=0.0001, p_s=1, collect_metrics_period=500, policy="MlpPolicy"):
+    def __init__(self, train_envs, eval_envs, n_agents, project_path, shape, total_episodes, n_neighbors=1,
+                 n_subgroups=1, phase_periods=[10,10], measure_mnemonic=False, measure_intergroup_alignment=False,
+        n_trials=1,
+                 buffer_size=5000,
+                 batch_size=128,
+                 migrate_rate=0.01, num_neurons=64, num_layers=2, visit_duration=10, seed=0, gamma=0.9, L_s=1,
+                 learning_rate=0.0001, p_s=1, collect_metrics_period=500, policy="MlpPolicy"):
         self.train_envs = train_envs
         self.eval_envs = eval_envs
         self.shape = shape
         self.n_agents = n_agents
         self.n_neighbors = n_neighbors
-        self.project_path = project_path
+        self.project_path = "projects/" + project_path
         self.collect_metrics_period = collect_metrics_period
         self.seed = seed
         self.policy = policy
@@ -48,19 +48,32 @@ class Sapiens:
         self.batch_size = batch_size
         self.num_neurons = num_neurons
         self.num_layers = num_layers
-        self.visit_duration = visit_duration
         self.L_s = L_s
         self.gamma = gamma
         self.learning_rate = learning_rate
-        self.total_timesteps = total_timesteps
+        self.total_episodes= total_episodes
+        self.measure_mnemonic = measure_mnemonic
+        self.measure_intergroup_alignment = measure_intergroup_alignment
+        self.n_trials = n_trials
 
         # config related to dynamic topologies
-        self.phase_periods = [int(el) for el in phase_periods.split(",")]
+        self.phase_periods = phase_periods
         self.phases = ["no-sharing", "fully-connected"]
         self.p_s = p_s
         self.n_subgroups = n_subgroups
         self.phase_idx = 0
         self.timer_dynamic_boyd = 0
+        self.migrate_rate = migrate_rate
+        self.visit_duration = visit_duration
+
+        # save experiment config for reproducibility
+        config = {key:value for key, value in self.__dict__.items() if not key.startswith('__')and not callable(key) }
+        del config["train_envs"]
+        del config["eval_envs"]
+        config["recipe_path"] = self.train_envs[0].data_path
+        with open(self.project_path + "/config.yaml" , "w") as f:
+            yaml.dump(config, f)
+
 
     def _setup_model(self):
         self.models = []
@@ -73,11 +86,14 @@ class Sapiens:
 
         set_random_seed(self.seed)
 
+        # create project's subdirs
         project_dirs = ["/models", "/tb_logs", "/plots", "/data"]
         for project_dir in project_dirs:
             new_dir = self.project_path + project_dir
             if not os.path.exists(new_dir):
                 os.makedirs(new_dir)
+
+
 
     def create_callbacks(self, agent_idx):
         """ Defines callbacks for one of the group's agents.
@@ -145,14 +161,14 @@ class Sapiens:
                             train_freq=16,
                             learning_rate=self.learning_rate)
 
-            self.init_training_step = 0
+            self.init_episode = 0
 
             # attach callbacks
             temp_callbacks = self.create_callbacks(i)
-            _, callback = agent._setup_learn(self.total_timesteps, eval_env=self.eval_envs[i],
+            _, callback = agent._setup_learn(self.total_episodes, eval_env=self.eval_envs[i],
                                              callback=temp_callbacks)
             callbacks.append(callback)
-            agent.num_timesteps = self.init_training_step
+            agent.num_timesteps = self.init_episode
 
             if self.shape == "dynamic-Boyd":
                 agent.visit_duration = self.visit_duration
@@ -174,79 +190,88 @@ class Sapiens:
         At each episode, an agent collects experience, sends experience to all its neighbors with probability p_s and
         trains.
         """
-        self.init_group()
-        current_training_step = self.init_training_step
-        total_timesteps = self.total_timesteps + self.init_training_step
-        if current_training_step:
-            # if model is loaded train from scratch
-            learning_starts = current_training_step
-        else:
-            learning_starts = (self.buffer_size // 100 * 5)
+        for trial in range(self.n_trials):
 
-        # ----- training phase -----
-        stop_training = False
+            self.project_path = self.project_path + "/trial_" + str(trial)
+            self._setup_model()
+            self.init_group()
 
-        for i, ENV in enumerate(self.train_envs):
-            self.callbacks[i].on_training_start(locals(), globals())
+            current_episode = self.init_episode
+            total_episodes= self.total_episodes + self.init_episode
+            if current_episode:
+                # if model is loaded train from scratch
+                learning_starts = current_episode
+            else:
+                learning_starts = (self.buffer_size // 100 * 5)
 
-        while (current_training_step < total_timesteps) and (not stop_training):
+            # ----- training phase -----
+            stop_training = False
 
-            start_time = time.time()
-            rollouts = []
-            for i, agent in enumerate(self.agents):
+            for i, ENV in enumerate(self.train_envs):
+                self.callbacks[i].on_training_start(locals(), globals())
 
-                # ------ log for mnemonic metrics -----
-                if current_training_step % self.collect_metrics_period == 0 and self.train_config.study_diversity:
-                    diversity, group_diversity, group_occurs = indiv_mnemonic_metrics(agent)
-                    agent.diversities.append(diversity)
+            while (current_episode < total_episodes) and (not stop_training):
 
-                    if i == 0:
-                        group_diversity, occurs = group_mnemonic_metrics(self.agents)
-                    agent.group_diversities.append(group_diversity)
-                    agent.group_occurs.append(occurs)
+                start_time = time.time()
+                rollouts = []
+                for i, agent in enumerate(self.agents):
 
-                # collect experience
-                rollout = agent.collect_rollouts(
-                    agent.env,
-                    train_freq=agent.train_freq,
-                    action_noise=agent.action_noise,
-                    callback=self.callbacks[i],
-                    learning_starts=agent.learning_starts,
-                    replay_buffer=agent.replay_buffer,
-                    log_interval=100)
-                rollouts.append(rollout)
+                    # ------ log for mnemonic metrics -----
+                    if current_episode % self.collect_metrics_period == 0 and self.measure_mnemonic:
+                        diversity = indiv_mnemonic_metrics(agent)
+                        agent.diversities.append(diversity)
 
-                # share experience
-                epsilon = random.uniform(0, 1)
-                if self.sharing and current_training_step > learning_starts and epsilon < self.p_s:
-                    agent.share()
+                        if i == 0:
+                            group_diversity, intragroup_alignment, occurs = group_mnemonic_metrics(self.agents,
+                                                                                                   self.measure_intergroup_alignment)
+                        agent.group_diversities.append(group_diversity)
+                        agent.intragroup_alignments(intragroup_alignment)
 
-                if rollout.continue_training is False:
-                    stop_training = True
-                    break
+                        if self.measure_intergroup_alignment:
+                            agent.group_occurs.append(occurs)
 
-                # train
-                if current_training_step > learning_starts:
-                    gradient_steps = agent.gradient_steps if agent.gradient_steps > 0 else rollouts[
-                        i].episode_timesteps
-                    agent.train(batch_size=self.batch_size, gradient_steps=gradient_steps)
+                    # collect experience
+                    rollout = agent.collect_rollouts(
+                        agent.env,
+                        train_freq=agent.train_freq,
+                        action_noise=agent.action_noise,
+                        callback=self.callbacks[i],
+                        learning_starts=agent.learning_starts,
+                        replay_buffer=agent.replay_buffer,
+                        log_interval=100)
+                    rollouts.append(rollout)
 
-            current_training_step += 1
+                    # share experience
+                    epsilon = random.uniform(0, 1)
+                    if self.sharing and current_episode > learning_starts and epsilon < self.p_s:
+                        agent.share()
 
-            # ------- update dynamic topologies ------
-            if self.shape == "dynamic-periodic":
-                self.timer_dynamic += 1
-                if self.timer_dynamic == self.phase_periods[self.phase_idx]:
-                    self.timer_dynamic = 0
-                    self.phase_idx += 1
-                    self.phase_idx = (self.phase_idx % len(self.phases))
-                    self.graph, self.agents = update_topology_periodic()
+                    if rollout.continue_training is False:
+                        stop_training = True
+                        break
 
-            if self.shape == "dynamic-Boyd":
-                self.graph, self.visit, self.agents = update_topology_Boyd(agents=self.agents,
-                                                                           graph=self.graph,
-                                                                           migrate_rate=self.migrate_rate,
-                                                                           visit=self.visit)
-            # -----------------------------------------
-        for c in self.callbacks:
-            c.on_training_end()
+                    # train
+                    if current_episode > learning_starts:
+                        gradient_steps = agent.gradient_steps if agent.gradient_steps > 0 else rollouts[
+                            i].episode_timesteps
+                        agent.train(batch_size=self.batch_size, gradient_steps=gradient_steps)
+
+                current_episode += 1
+
+                # ------- update dynamic topologies ------
+                if self.shape == "dynamic-periodic":
+                    self.timer_dynamic += 1
+                    if self.timer_dynamic == self.phase_periods[self.phase_idx]:
+                        self.timer_dynamic = 0
+                        self.phase_idx += 1
+                        self.phase_idx = (self.phase_idx % len(self.phases))
+                        self.graph, self.agents = update_topology_periodic()
+
+                if self.shape == "dynamic-Boyd":
+                    self.graph, self.visit, self.agents = update_topology_Boyd(agents=self.agents,
+                                                                               graph=self.graph,
+                                                                               migrate_rate=self.migrate_rate,
+                                                                               visit=self.visit)
+                # -----------------------------------------
+            for c in self.callbacks:
+                c.on_training_end()

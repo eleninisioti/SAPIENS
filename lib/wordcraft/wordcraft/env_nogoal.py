@@ -110,6 +110,8 @@ class WordCraftEnvNoGoal(gym.Env):
         self.episode_reward = 0
         self.done = False
 
+        self.data_path = data_path
+
         obs = self.reset()
         num_entities = len(self.recipe_book.entities)
         dspaces = {
