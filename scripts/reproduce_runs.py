@@ -1,6 +1,7 @@
 """ Running this script will launch simulations for collecting all results in the paper.
 """
-
+import sys
+sys.path.append(".")
 import gym
 import copy
 from lib.wordcraft.utils.task_utils import recipe_book_info
@@ -70,7 +71,7 @@ def run_all_main():
     num_layers = 2
 
     #tasks = {"single_path": 50000, "merging_paths": 500000, "bestoften_paths": 500000}
-    tasks = {"single_path": 5000, "merging_paths": 5000, "bestoften_paths": 5000}
+    tasks = {"single_path": 50000, "merging_paths": 500000, "bestoften_paths": 500000}
 
     for task, total_episodes in tasks.items():
 

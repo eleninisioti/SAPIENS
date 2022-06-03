@@ -13,13 +13,15 @@ import pickle
 import os
 import yaml
 import copy
+import gym
 
 # ----- project-specific imports -----
 from lib.stable_baselines3 import DQN
 from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 from lib.wordcraft.utils.task_utils import recipe_book_info
 from gym.wrappers import FlattenObservation
-
+from scripts.plot_project import plot
+from scripts.compute_metrics_project import compute_metrics
 
 
 def process_mnemonic(model, last_length, process_occurs):
@@ -157,15 +159,16 @@ def evaluate(project):
     n_distractors: int
         number of distractors
     """
-    config = yaml.safe_load(open("../" + project + "/config.yaml", "r"))
+    project = "projects/" + project
+    config = yaml.safe_load(open(project + "/config.yaml", "r"))
     recipe_path = config["recipe_path"]
-    recipe_name = [key for key, value in recipe_book_info if value["path"]==recipe_path]
+    recipe_name = [key for key, value in recipe_book_info.items() if value["path"]==recipe_path][0]
     max_rew = recipe_book_info[recipe_name]["best_reward"]
     n_agents = config["n_agents"]
     n_steps = list(range(0, config["total_episodes"], 10000))
     n_trials = config["n_trials"]
 
-    env, _ = build_envs(recipe_path=recipe_book_info[recipe_name]["path"], project=project)
+    env, _ = build_envs(recipe_path=recipe_book_info[recipe_name]["path"])
 
 
     # ---- evaluate -----
@@ -182,13 +185,14 @@ def evaluate(project):
     total_buffer_keys = []
     total_buffer_values = []
 
-    last_length=0
+    last_length = 0
 
-    for i, step in enumerate(n_steps):
+    for i, step in enumerate(n_steps[1:]):
         for trial in range(n_trials):
+
             for agent in range(n_agents):
 
-                path = project + "/agent_" + str(agent) + "_" + str(step) + "_steps"
+                path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
 
                 if os.path.exists(path + ".zip"):
                     try:
@@ -199,7 +203,8 @@ def evaluate(project):
 
                     env.reset()
                     actions, unique_words, rewards, trajectory = eval_model(model, env)
-
+                    if rewards:
+                        print("check")
                     all_levels = [0] + [int(el[(el.rindex("_") + 1):]) for el in unique_words]
                     level = max(all_levels)
                     total_rewards.append(rewards)
@@ -209,7 +214,7 @@ def evaluate(project):
                     total_trials.append(trial)
                     total_levels.append(level)
 
-                if config["study_mnemonic"]:
+                if config["measure_mnemonic"]:
                     diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values = process_mnemonic(model, last_length)
 
                     total_diversities.append(diversity)
@@ -248,7 +253,7 @@ def evaluate(project):
 
 
     # ----- save evaluation data -----
-    eval_save_dir = project + "/data/eval"
+    eval_save_dir = project + "/data"
 
     if os.path.exists(eval_save_dir):
         shutil.rmtree(eval_save_dir)
@@ -263,6 +268,7 @@ def evaluate(project):
         pickle.dump(occurs, f)
 
     # ----- produce evaluation plots -----
-    #plot_project()
+    volatilities, conformities = compute_metrics(project)
+    plot(eval_info, volatilities, conformities, config["measure_mnemonic"],  project)
 
 

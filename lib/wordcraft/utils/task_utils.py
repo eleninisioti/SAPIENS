@@ -20,6 +20,6 @@ recipe_book_info = {"single_path": {"path": "lib/wordcraft/recipe_books/single_p
                                     "best_reward": 72,
                                     "max_steps": 3500000,
                                     "early_step": 500000
-                                    },
+                                    }
                     }
 

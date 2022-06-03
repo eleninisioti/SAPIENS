@@ -34,7 +34,7 @@ class Sapiens:
                  buffer_size=5000,
                  batch_size=128,
                  migrate_rate=0.01, num_neurons=64, num_layers=2, visit_duration=10, seed=0, gamma=0.9, L_s=1,
-                 learning_rate=0.0001, p_s=1, collect_metrics_period=500, policy="MlpPolicy"):
+                 learning_rate=0.001, p_s=1, collect_metrics_period=500, policy="MlpPolicy"):
         self.train_envs = train_envs
         self.eval_envs = eval_envs
         self.shape = shape
@@ -66,13 +66,7 @@ class Sapiens:
         self.migrate_rate = migrate_rate
         self.visit_duration = visit_duration
 
-        # save experiment config for reproducibility
-        config = {key:value for key, value in self.__dict__.items() if not key.startswith('__')and not callable(key) }
-        del config["train_envs"]
-        del config["eval_envs"]
-        config["recipe_path"] = self.train_envs[0].data_path
-        with open(self.project_path + "/config.yaml" , "w") as f:
-            yaml.dump(config, f)
+
 
 
     def _setup_model(self):
@@ -86,12 +80,28 @@ class Sapiens:
 
         set_random_seed(self.seed)
 
-        # create project's subdirs
-        project_dirs = ["/models", "/tb_logs", "/plots", "/data"]
+        # ----- create project's subdirs -----
+        project_dirs = ["/data", "/plots"]
         for project_dir in project_dirs:
             new_dir = self.project_path + project_dir
             if not os.path.exists(new_dir):
                 os.makedirs(new_dir)
+
+        for trial in range(self.n_trials):
+            project_dirs = ["/trial_" + str(trial) + "/models", "/trial_" + str(trial) + "/tb_logs",
+                            "/trial_" + str(trial) + "/plots"]
+            for project_dir in project_dirs:
+                new_dir = self.project_path + project_dir
+                if not os.path.exists(new_dir):
+                    os.makedirs(new_dir)
+
+        # save experiment config for reproducibility
+        config = {key:value for key, value in self.__dict__.items() if not key.startswith('__')and not callable(key) }
+        del config["train_envs"]
+        del config["eval_envs"]
+        config["recipe_path"] = self.train_envs[0].data_path
+        with open(self.project_path + "/config.yaml", "w") as f:
+            yaml.dump(config, f)
 
 
 
@@ -192,8 +202,9 @@ class Sapiens:
         """
         for trial in range(self.n_trials):
 
-            self.project_path = self.project_path + "/trial_" + str(trial)
             self._setup_model()
+
+            self.project_path = self.project_path + "/trial_" + str(trial)
             self.init_group()
 
             current_episode = self.init_episode
