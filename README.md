@@ -6,13 +6,15 @@ SAPIENS is a reinforcement learning algorithm where multiple **off-policy agents
 
 As this visualization shows in our current implementation all agents are DQNs and exchange experiences have the form of **transitions from their replay buffers**.
 
-![Experience Sharing DQN](/home/elena/Downloads/pdf2png (2)/algorithms (1)/algorithms (1)-1.png)
+![Experience Sharing DQN](https://firebasestorage.googleapis.com/v0/b/firescript-577a2.appspot.com/o/imgs%2Fapp%2Feleni%2FVJlf5jueXb.png?alt=media&token=56a4f560-23bb-4098-b65c-1303ddbb8dc0)
 
 Using SAPIENS we can define groups of agents that are connected with others based on a a) fully-connected topology b) small-world topology c) ring topology or d) dynamic topology
 
 
 
-![structures-1](/home/elena/Downloads/pdf2png (2)/structures/structures-1.png)
+![topologies](https://firebasestorage.googleapis.com/v0/b/firescript-577a2.appspot.com/o/imgs%2Fapp%2Feleni%2FUn1BHk2PmM.png?alt=media&token=dd0b0588-945a-4873-9af7-605e2055d567)
+
+
 
 ## How to use SAPIENS
 
