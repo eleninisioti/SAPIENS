@@ -1,14 +1,31 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import os
 from scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
 
 cm = 1 / 2.54
 FIG_SIZE = (8.48 * cm, 6 * cm)
 ORDER = ["no-sharing", "dynamic-Boyd", "fully-connected", "small-world", "ring"]
 
+def plot_intergroup_alignment(total_df, save_dir):
+    fig, ax = plt.subplots(1, 1, figsize=FIG_SIZE)
 
-def plot(eval_info, volatilities, conformities, measure_mnemonic, intergroup_alignment, project):
+    sns.lineplot(x="train_step",
+                 y="diff",
+                 data=total_df,
+                 palette="nipy_spectral",
+                 ci="sd",
+                 hue="pair")
+
+    plt.set(xlabel=f"Training step, $t$", ylabel="Inter-group alignment, \n  $A^{\mathcal{G}_j, \mathcal{G}_j}_t$")
+    save_path = "projects/" + save_dir + "/plots"
+    if not os.path.exists(save_path):
+        os.path.makedirs(save_path)
+
+    plt.savefig(save_path +  "inter_total.pdf")
+    plt.clf()
+
+def plot_project(eval_info, volatilities, conformities, measure_mnemonic,  project):
     plot_metric_with_time(eval_info, "norm_reward", project)
     plot_metric_with_time(volatilities, "volatility", project)
     plot_metric_with_time(conformities, "group_conformity", project)
@@ -18,8 +35,7 @@ def plot(eval_info, volatilities, conformities, measure_mnemonic, intergroup_ali
         plot_metric_with_time(eval_info, "group_diversity", project)
         plot_metric_with_time(eval_info, "intragroup_alignment", project)
 
-    if len(intergroup_alignment):
-        plot_metric_with_time(intergroup_alignment, "intergroup_alignment", project)
+
 
 
 def plot_metric_with_time(data, metric, project):
@@ -75,3 +91,4 @@ def plot_metric_with_time(data, metric, project):
         save_path = project + "/plots/" + mode + "_" + metric + ".pdf"
         plt.savefig(save_path)
         plt.clf()
+

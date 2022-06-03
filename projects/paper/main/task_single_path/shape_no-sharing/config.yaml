@@ -12,7 +12,7 @@ models: []
 n_agents: 10
 n_neighbors: 1
 n_subgroups: 1
-n_trials: 1
+n_trials: 10
 num_layers: 2
 num_neurons: 64
 p_s: 1

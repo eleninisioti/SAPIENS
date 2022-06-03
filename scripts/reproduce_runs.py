@@ -10,7 +10,7 @@ from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 import lib.wordcraft
 from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 from sapiens.sapiens import Sapiens
-from scripts.eval_project import evaluate
+from scripts.evaluate import evaluate_project
 
 
 def build_envs(recipe_path="", log_path=""):
@@ -98,12 +98,13 @@ def run_all_main():
                             train_envs=train_envs,
                             eval_envs=eval_envs,
                             project_path=project_path,
-                            total_episodes=total_episodes)
+                            total_episodes=total_episodes,
+                            n_trials=10)
             # train
             group.learn()
 
             # evaluate
-            evaluate(project_path)
+            evaluate_project(project_path)
 
 
 def run_scaling():
@@ -154,12 +155,13 @@ def run_scaling():
                                 train_envs=train_envs,
                                 eval_envs=eval_envs,
                                 project_path=project_path,
-                                total_episodes=total_episodes)
+                                total_episodes=total_episodes,
+                            n_trials=10)
                 # train
                 group.learn()
 
                 # evaluate
-                evaluate(project_path)
+                evaluate_project(project_path)
 
 
 def run_varying_dynamic_topologies():
@@ -218,12 +220,13 @@ def run_varying_dynamic_topologies():
                                 project_path=project_path,
                                 total_episodes=total_episodes,
                                 visit_duration=visit_duration,
-                                migrate_rate=migrate_rate)
+                                migrate_rate=migrate_rate,
+                            n_trials=10)
                 # train
                 group.learn()
 
                 # evaluate
-                evaluate(project_path)
+                evaluate_project(project_path)
 
     # ----- tuning dynamic-periodic
     top_dir = "paper/appendix/varying_dynamic/dynamic_Boyd"
@@ -269,12 +272,13 @@ def run_varying_dynamic_topologies():
                                 eval_envs=eval_envs,
                                 project_path=project_path,
                                 total_episodes=total_episodes,
-                                phase_periods=phase_periods)
+                                phase_periods=phase_periods,
+                                n_trials=10)
                 # train
                 group.learn()
 
                 # evaluate
-                evaluate(project_path)
+                evaluate_project(project_path)
 
 
 def run_mnemonic():
@@ -324,12 +328,13 @@ def run_mnemonic():
                             eval_envs=eval_envs,
                             project_path=project_path,
                             total_episodes=total_episodes,
-                            measure_mnemonic=True)
+                            measure_mnemonic=True,
+                            n_trials=10)
             # train
             group.learn()
 
             # evaluate
-            evaluate(project_path)
+            evaluate_project(project_path)
 
 def run_intergroup_alignment():
     """ Runs all experiments used in plots in the main paper.
@@ -350,7 +355,7 @@ def run_intergroup_alignment():
     num_layers = 2
 
 
-    tasks = {"single_path": 50000, "merging_paths": 500000, "bestoften_paths": 500000}
+    tasks = {"single_path": 50000, "merging_paths": 50000, "bestoften_paths": 50000}
 
     for task, total_episodes in tasks.items():
 
@@ -378,12 +383,13 @@ def run_intergroup_alignment():
                             eval_envs=eval_envs,
                             project_path=project_path,
                             total_episodes=total_episodes,
-                            measure_intergroup_alignment=True)
+                            measure_intergroup_alignment=True,
+                            n_trials=10)
             # train
             group.learn()
 
             # evaluate
-            evaluate(project_path)
+            evaluate_project(project_path)
 
 if __name__ == "__main__":
 
@@ -391,12 +397,12 @@ if __name__ == "__main__":
     run_all_main()
 
     # ----- experiments in appendices below -----
-    #run_scaling() # group size effect in 6.4.4
+    run_scaling() # group size effect in 6.4.4
 
-    #run_varying_dynamic_topologies() # varying dynamic topologies in 6.4.5
+    run_varying_dynamic_topologies() # varying dynamic topologies in 6.4.5
 
-    #run_mnemonic() #  intra-group aligment in 6.4.3, as well as all diversity plots
+    run_mnemonic() #  intra-group aligment in 6.4.3, as well as all diversity plots
 
-    #run_intergroup_alignment() # inter-group alignment in 6.4.3
+    run_intergroup_alignment() # inter-group alignment in 6.4.3
 
 

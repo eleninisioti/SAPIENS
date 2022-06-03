@@ -20,8 +20,8 @@ from lib.stable_baselines3 import DQN
 from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 from lib.wordcraft.utils.task_utils import recipe_book_info
 from gym.wrappers import FlattenObservation
-from scripts.plot_project import plot
-from scripts.compute_metrics_project import compute_metrics
+from scripts.plot import plot_project
+from scripts.compute_metrics import compute_metrics_project
 
 
 def process_mnemonic(model, last_length, process_occurs):
@@ -137,7 +137,7 @@ def build_envs(recipe_path="", log_path=""):
 
 
 
-def evaluate(project):
+def evaluate_project(project):
     """
     Evaluates all models under a project and returns dataframes for how different metrics evolve  training time.
 
@@ -165,7 +165,7 @@ def evaluate(project):
     recipe_name = [key for key, value in recipe_book_info.items() if value["path"]==recipe_path][0]
     max_rew = recipe_book_info[recipe_name]["best_reward"]
     n_agents = config["n_agents"]
-    n_steps = list(range(0, config["total_episodes"], 10000))
+    n_steps = list(range(0, config["total_episodes"]*16, 10000))
     n_trials = config["n_trials"]
 
     env, _ = build_envs(recipe_path=recipe_book_info[recipe_name]["path"])
@@ -203,8 +203,7 @@ def evaluate(project):
 
                     env.reset()
                     actions, unique_words, rewards, trajectory = eval_model(model, env)
-                    if rewards:
-                        print("check")
+
                     all_levels = [0] + [int(el[(el.rindex("_") + 1):]) for el in unique_words]
                     level = max(all_levels)
                     total_rewards.append(rewards)
@@ -268,7 +267,48 @@ def evaluate(project):
         pickle.dump(occurs, f)
 
     # ----- produce evaluation plots -----
-    volatilities, conformities = compute_metrics(project)
-    plot(eval_info, volatilities, conformities, config["measure_mnemonic"],  project)
+    volatilities, conformities = compute_metrics_project(project)
 
+    with open(eval_save_dir + "/behavioral_metrics.pkl", "wb") as f:
+        pickle.dump({"volatitilies": volatilities, "conformities": conformities}, f)
 
+    plot_project({"": eval_info}, {"": volatilities}, {"": conformities}, config["measure_mnemonic"],  project)
+
+def compare_projects(projects, parameter, save_dir):
+    """  Compares multiple projects whose configuration differs in a desired parameter.
+
+    For example, if parameter="shape", we compare different topologies. If paramter="n_agents", we compare different
+    group sizes. As comparisons, we produce plots of all performance metrics.
+
+    Params
+    ------
+    projects: list of str
+        project directories
+
+    parameter: str
+        name of parameter for comparison
+
+    """
+    total_eval_info  = {}
+    total_volatilities = {}
+    total_conformities = {}
+    for project in projects:
+        # load eval_info
+        eval_save_dir = "projects/" + project + "/data"
+
+        with open(eval_save_dir + "/eval_info.pkl", "wb") as f:
+            eval_info = pickle.load(f)
+
+        # find label of project
+        config = yaml.safe_load("projects/" + project + "config.yaml")
+        label = config[parameter]
+
+        total_eval_info[label] = eval_info
+
+        with open(eval_save_dir + "/behavioral_metrics.pkl", "wb") as f:
+            beh_metrics = pickle.load(f)
+        total_volatilities[label] = beh_metrics["volatilities"]
+
+        total_conformities[label] = beh_metrics["conformities"]
+
+    plot_project(eval_info, total_volatilities, total_conformities, config["measure_mnemonic"], save_dir)

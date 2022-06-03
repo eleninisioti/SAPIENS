@@ -236,7 +236,7 @@ class Sapiens:
                             group_diversity, intragroup_alignment, occurs = group_mnemonic_metrics(self.agents,
                                                                                                    self.measure_intergroup_alignment)
                         agent.group_diversities.append(group_diversity)
-                        agent.intragroup_alignments(intragroup_alignment)
+                        agent.intragroup_alignments.append(intragroup_alignment)
 
                         if self.measure_intergroup_alignment:
                             agent.group_occurs.append(occurs)

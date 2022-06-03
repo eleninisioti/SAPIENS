@@ -74,7 +74,7 @@ def measure_conformity(trajectories, n_trials, n_agents):
             current_conformity = 1 - ((len(current_step) - 1) / n_agents)
             trial_conformities.append(current_conformity)
             df_conformity["train_step"].append(step)
-            df_conformity["group_conformity"].append(conformity)
+            df_conformity["group_conformity"].append(current_conformity)
             df_conformity["trial"].append(trial)
 
         conformity.append(np.mean(trial_conformities))
@@ -106,7 +106,7 @@ def compute_performance_metrics(eval_info, n_trials, n_agents):
             first_step_one = min(first_steps)
             failed_trial = 0
         else:
-            first_step_one = None
+            first_step_one = np.nan
             failed_trial = 1
 
         # detect when all agents found the optimal solution
@@ -114,8 +114,8 @@ def compute_performance_metrics(eval_info, n_trials, n_agents):
             first_step_all = max(first_steps)
             time_to_spread = first_step_all - first_step_one
         else:
-            first_step_all = None
-            time_to_spread = None
+            first_step_all = np.nan
+            time_to_spread = np.nan
 
         metrics["time_to_all_successes"].append(first_step_all)
         metrics["time_to_first_success"].append(first_step_one)
@@ -145,7 +145,7 @@ def compute_behavioral_metrics(eval_info, n_trials, n_agents):
 
     return metrics, df_volatility, df_conformity
 
-def compute_metrics(project):
+def compute_metrics_project(project):
     config = yaml.safe_load(open( project + "/config.yaml", "r"))
     n_trials = config["n_trials"]
     n_agents = config["n_agents"]
@@ -165,8 +165,12 @@ def compute_metrics(project):
             pickle.dump(metrics, f)
 
         # yaml file contains average over trials
-        metrics_mean = metrics.mean(axis=0)
-        metrics_var = metrics.var(axis=0)
+
+        metrics_mean ={}
+        metrics_var = {}
+        for key, value in metrics.items():
+            metrics_mean[key + "_mean"] = float(np.nanmean(value))
+            metrics_var[key + "_var"] = float(np.nanvar(value))
 
         metrics_stat = {**metrics_mean , **metrics_var}
 
@@ -176,4 +180,72 @@ def compute_metrics(project):
 
     return df_volatility, df_conformity
 
+
+def measure_intergroup_alignment(projects):
+    total_occurs = {}
+    for project in projects:
+        # find label of project
+        config = yaml.safe_load("projects/" + project + "config.yaml")
+        label = config["shape"]
+
+        with open("projects/" + project + "/data/occurs.pkl", "w") as f:
+            occurs = pickle.load(f)
+        total_occurs[label] = occurs
+
+    n_steps = list(range(0, config["total_episodes"] * 16, 10000))
+    n_trials = config["n_trials"]
+    total_df = []
+    for step in n_steps:
+        step_diffs = {}
+        for trial in range(n_trials):
+
+            for idx1, data1 in total_occurs.items():
+                for idx2, data2 in total_occurs.items():
+                    if idx1!=idx2:
+
+                        current_data1 = data1.loc[data1["trial"] == trial]
+                        current_data1 = current_data1.loc[current_data1["train_step"] == step]
+                        current_data1 = current_data1.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
+
+                        current_data2 = data2.loc[data2["trial"] == trial]
+                        current_data2= current_data2.loc[current_data2["train_step"] == step]
+                        current_data2 = current_data2.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
+
+                        # compare the two dicts
+                        list1 = []
+                        for key, value in current_data1.items():
+                            for _ in range(value[0]):
+                                list1.append(key)
+                        list1.sort()
+                        list2 = []
+                        for key, value in current_data2.items():
+                            for _ in range(value[0]):
+                                list2.append(key)
+                        list2.sort()
+
+                        diffs = 0
+                        for idx, el in enumerate(list1):
+                            if (len(list2) > idx) and el != list2[idx]:
+                                diffs += 1
+
+                        if tuple([idx1, idx2]) not in step_diffs.keys() and tuple([idx2, idx1]) not in step_diffs.keys(
+
+                        ):
+                            step_diffs[tuple([idx1, idx2])] = [diffs/max([len(list1), len(list2),1])]
+                        else:
+                            if tuple([idx1, idx2]) in step_diffs.keys():
+                                step_diffs[tuple([idx1, idx2])].append(diffs/max([len(list1), len(list2),1]))
+
+                        diff = diffs/max([len(list1), len(list2),1])
+                        df = pd.DataFrame(columns=["pair", "trial", "train_step", "diff"])
+                        df.loc[0] = [tuple([idx1,idx2]), trial, step, 1-diff]
+
+                        if len(total_df):
+                            total_df = total_df.append(df, ignore_index=True)
+                        else:
+                            total_df = df
+
+
+
+    return total_df
 
