@@ -74,7 +74,6 @@ def update_topology_periodic(agents, phases, phase_idx, graph):
 
     Params
     ------
-
     agents: list of ES-DQN
         the group of agents
 
@@ -86,7 +85,6 @@ def update_topology_periodic(agents, phases, phase_idx, graph):
 
     graph: networkx.Graph
         the graph modeling the social network topology
-
     """
     n_agents = len(agents)
     if phases[phase_idx] == "no-sharing":
@@ -99,7 +97,7 @@ def update_topology_periodic(agents, phases, phase_idx, graph):
     return graph, agents
 
 
-def update_topology_Boyd(agents, graph, migrate_rate, visiting):
+def update_topology_Boyd(agents, graph, migrate_rate, visiting, project_path, episode):
     """ Updates the dynamic-Boyd topology
 
     Params
@@ -120,7 +118,7 @@ def update_topology_Boyd(agents, graph, migrate_rate, visiting):
     epsilon = random.uniform(0, 1)
     if epsilon < migrate_rate and not visiting:
         # a random agent visits a random sub-group
-        keep_agents = copy.deepcopy(agents)
+        keep_agents = copy.copy(agents)
 
         immigrant = random.choice(keep_agents)
         agents = immigrant.visit(keep_agents)
@@ -129,14 +127,22 @@ def update_topology_Boyd(agents, graph, migrate_rate, visiting):
             immigrant = random.choice(keep_agents)
             agents = immigrant.visit(keep_agents)
 
-            visiting = True
+        visiting = True
 
     if visiting:
         # check if an agent needs to return from a visit
         for agent in agents:
-            agents, end_visit = agent.visit_return(agents)
+            if agent.visiting:
+                agents, end_visit = agent.visit_return(agents)
 
-            if end_visit:
-                visiting = False
+                if end_visit:
+                    visiting = False
 
-    return graph, visiting, agents
+    # order agents (it matters because the callbacks are ordered)
+    ordered_agents = []
+    for counter in range(len(agents)):
+        for agent in agents:
+            if agent.idx == counter:
+                ordered_agents.append(agent)
+
+    return graph, visiting, ordered_agents

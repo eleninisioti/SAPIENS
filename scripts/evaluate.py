@@ -40,9 +40,9 @@ def process_mnemonic(model, last_length, process_occurs):
     """
 
     diversity = np.mean(model.diversities[:last_length])
-    group_diversity =  np.mean(model.group_diversities[:last_length])
+    group_diversity = np.mean(model.group_diversities[:last_length])
     intragroup_alignment = np.mean(model.intragroup_alignments[:last_length])
-    last_length = len(diversity)
+    last_length = len(model.diversities)
 
     if process_occurs:
         group_occurs = model.group_occurs[-1]
@@ -53,8 +53,6 @@ def process_mnemonic(model, last_length, process_occurs):
     else:
         buffer_keys = []
         buffer_values = []
-
-
 
     return diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values
 
@@ -136,7 +134,6 @@ def build_envs(recipe_path="", log_path=""):
     return env, eval_env
 
 
-
 def evaluate_project(project):
     """
     Evaluates all models under a project and returns dataframes for how different metrics evolve  training time.
@@ -145,31 +142,17 @@ def evaluate_project(project):
     ---------
     project: str
         directory of project
-
-    n_trials: int
-        number of independent evaluation trials
-
-
-    recipe_name: str
-        alis of recipe book
-
-    episode_len: int
-        length of episode
-
-    n_distractors: int
-        number of distractors
     """
-    project = "projects/" + project
+    project = project
     config = yaml.safe_load(open(project + "/config.yaml", "r"))
     recipe_path = config["recipe_path"]
-    recipe_name = [key for key, value in recipe_book_info.items() if value["path"]==recipe_path][0]
+    recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
     max_rew = recipe_book_info[recipe_name]["best_reward"]
     n_agents = config["n_agents"]
-    n_steps = list(range(0, config["total_episodes"]*16, 10000))
+    n_steps = list(range(0, config["total_episodes"] * 16, 10000))
     n_trials = config["n_trials"]
 
     env, _ = build_envs(recipe_path=recipe_book_info[recipe_name]["path"])
-
 
     # ---- evaluate -----
     total_rewards = []
@@ -185,7 +168,7 @@ def evaluate_project(project):
     total_buffer_keys = []
     total_buffer_values = []
 
-    last_length = 0
+    last_length = -1
 
     for i, step in enumerate(n_steps[1:]):
         for trial in range(n_trials):
@@ -214,7 +197,8 @@ def evaluate_project(project):
                     total_levels.append(level)
 
                 if config["measure_mnemonic"]:
-                    diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values = process_mnemonic(model, last_length)
+                    diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values = \
+                        process_mnemonic(model, last_length, process_occurs=config["measure_intergroup_alignment"])
 
                     total_diversities.append(diversity)
                     total_group_diversities.append(group_diversity)
@@ -225,31 +209,29 @@ def evaluate_project(project):
 
     if config["measure_mnemonic"]:
         eval_info = pd.DataFrame({"train_step": total_steps,
-                                   "norm_reward": np.array(total_rewards) / max_rew,
-                                   "agent": total_agents,
-                                   "trial": total_trials,
-                                   "level": total_levels,
-                                   "trajectory": total_trajectories,
-                                   "diversity": total_diversities,
-                                   "group_diversity": total_group_diversities,
-                                   "intragroup_alignment": total_intragroup_alignment})
+                                  "norm_reward": np.array(total_rewards) / max_rew,
+                                  "agent": total_agents,
+                                  "trial": total_trials,
+                                  "level": total_levels,
+                                  "trajectory": total_trajectories,
+                                  "diversity": total_diversities,
+                                  "group_diversity": total_group_diversities,
+                                  "intragroup_alignment": total_intragroup_alignment})
 
         if config["measure_intergroup_alignment"]:
-
             occurs = pd.DataFrame({"buffer_keys": total_buffer_keys,
-                                        "buffer_values": total_buffer_values,
-                                        "train_step": total_steps,
-                                        "trial": total_trials})
+                                   "buffer_values": total_buffer_values,
+                                   "train_step": total_steps,
+                                   "trial": total_trials})
 
     else:
 
         eval_info = pd.DataFrame({"train_step": total_steps,
-                                   "norm_reward": np.array(total_rewards) / max_rew,
-                                   "agent": total_agents,
-                                   "trial": total_trials,
-                                   "level": total_levels,
-                                   "trajectory": total_trajectories})
-
+                                  "norm_reward": np.array(total_rewards) / max_rew,
+                                  "agent": total_agents,
+                                  "trial": total_trials,
+                                  "level": total_levels,
+                                  "trajectory": total_trajectories})
 
     # ----- save evaluation data -----
     eval_save_dir = project + "/data"
@@ -270,9 +252,10 @@ def evaluate_project(project):
     volatilities, conformities = compute_metrics_project(project)
 
     with open(eval_save_dir + "/behavioral_metrics.pkl", "wb") as f:
-        pickle.dump({"volatitilies": volatilities, "conformities": conformities}, f)
+        pickle.dump({"volatilities": volatilities, "conformities": conformities}, f)
 
-    plot_project({"": eval_info}, {"": volatilities}, {"": conformities}, config["measure_mnemonic"],  project)
+    plot_project({"": eval_info}, {"": volatilities}, {"": conformities}, config["measure_mnemonic"], project)
+
 
 def compare_projects(projects, parameter, save_dir):
     """  Compares multiple projects whose configuration differs in a desired parameter.
@@ -289,26 +272,26 @@ def compare_projects(projects, parameter, save_dir):
         name of parameter for comparison
 
     """
-    total_eval_info  = {}
+    total_eval_info = {}
     total_volatilities = {}
     total_conformities = {}
     for project in projects:
         # load eval_info
-        eval_save_dir = "projects/" + project + "/data"
+        eval_save_dir = project + "/data"
 
-        with open(eval_save_dir + "/eval_info.pkl", "wb") as f:
+        with open(eval_save_dir + "/eval_info.pkl", "rb") as f:
             eval_info = pickle.load(f)
 
         # find label of project
-        config = yaml.safe_load("projects/" + project + "config.yaml")
+        config = yaml.safe_load(open(project + "/config.yaml", "r"))
         label = config[parameter]
 
         total_eval_info[label] = eval_info
 
-        with open(eval_save_dir + "/behavioral_metrics.pkl", "wb") as f:
+        with open(eval_save_dir + "/behavioral_metrics.pkl", "rb") as f:
             beh_metrics = pickle.load(f)
         total_volatilities[label] = beh_metrics["volatilities"]
 
         total_conformities[label] = beh_metrics["conformities"]
 
-    plot_project(eval_info, total_volatilities, total_conformities, config["measure_mnemonic"], save_dir)
+    plot_project(total_eval_info, total_volatilities, total_conformities, config["measure_mnemonic"], save_dir)

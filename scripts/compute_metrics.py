@@ -1,11 +1,24 @@
-from lib.wordcraft.utils.task_utils import recipe_book_info
 import yaml
 import pickle
 import pandas as pd
 import numpy as np
 
 
-def measure_volatility(trajectories, n_trials, n_agents):
+def measure_volatility(trajectories, n_trials):
+    """ Measure volatility.
+
+    Volatility is the cumulative number of switches in the policy followed by an agent during consecutive evaluation
+    episodes.
+
+    trajectories: Dataframe
+        contains infromation collected during the evaluation of the project
+
+    n_trials: int
+        number of trials for this project
+
+
+    Returns information in two formats: a list for saving as a yaml file and a dataframe for plotting
+    """
     n_agents = max(trajectories["agent"]) + 1
     n_trials = n_trials
     df_volatility = {"train_step": [], "volatility": [], "agent": [], "trial": []}
@@ -42,13 +55,27 @@ def measure_volatility(trajectories, n_trials, n_agents):
 
     return volatility, df_volatility
 
-def measure_conformity(trajectories, n_trials, n_agents):
-    """ Measures conformity as the variance in the last visited state in the trajectories of agents.
 
-            Returns:
-                the mean value across timesteps
-                the value at each timestep
-            """
+def measure_conformity(trajectories, n_trials, n_agents):
+    """ Measures conformity.
+
+    Conformity is a behavioral metric that measures the percentage of agents following the same trajectory during the
+    same evaluation trial.
+
+    Params
+    ------
+    trajectories: Dataframe
+        contains infromation collected during the evaluation of the project
+
+    n_trials: int
+        number of trials for this project
+
+    n_agents: int
+        number of agents
+
+    Returns information in two formats: a list for saving as a yaml file and a dataframe for plotting
+
+    """
     conformity = []
     df_conformity = {"train_step": [], "group_conformity": [], "trial": []}
 
@@ -85,8 +112,22 @@ def measure_conformity(trajectories, n_trials, n_agents):
 
 
 def compute_performance_metrics(eval_info, n_trials, n_agents):
+    """ Compute performance-based metrics.
+
+
+    Params
+    ------
+    eval_info: Dataframe
+        contains infromation collected during the evaluation of the project
+
+    n_trials: int
+        number of trials for this project
+
+    n_agents: int
+        number of agents
+    """
     metrics = {"time_to_first_success": [], "time_to_all_successes": [], "spread_time": [],
-               "group_success": [], "avg_reward_conv": [], "max_reward_conv":[]}
+               "group_success": [], "avg_reward_conv": [], "max_reward_conv": []}
 
     for trial in range(n_trials):
 
@@ -119,10 +160,8 @@ def compute_performance_metrics(eval_info, n_trials, n_agents):
 
         metrics["time_to_all_successes"].append(first_step_all)
         metrics["time_to_first_success"].append(first_step_one)
-        metrics["group_success"].append(1-failed_trial)
+        metrics["group_success"].append(1 - failed_trial)
         metrics["spread_time"].append(time_to_spread)
-
-
 
         last_rewards = []
         for agent in range(n_agents):
@@ -137,44 +176,64 @@ def compute_performance_metrics(eval_info, n_trials, n_agents):
 
     return metrics
 
+
 def compute_behavioral_metrics(eval_info, n_trials, n_agents):
+    """ Compute behavioral metrics
+
+    Params
+    ------
+    eval_info: Dataframe
+        contains infromation collected during the evaluation of the project
+
+    n_trials: int
+        number of trials for this project
+
+    n_agents: int
+        number of agents
+    """
     volatility, df_volatility = measure_volatility(eval_info, n_trials, n_agents)
     conformity, df_conformity = measure_conformity(eval_info, n_trials, n_agents)
 
-    metrics = {"volatility": volatility,  "conformity": conformity}
+    metrics = {"volatility": volatility, "conformity": conformity}
 
     return metrics, df_volatility, df_conformity
 
+
 def compute_metrics_project(project):
-    config = yaml.safe_load(open( project + "/config.yaml", "r"))
+    """ Compute all metrics for project
+
+    Params
+    ------
+    project: str
+        directory of project (under SAPIENS)
+    """
+    config = yaml.safe_load(open(project + "/config.yaml", "r"))
     n_trials = config["n_trials"]
     n_agents = config["n_agents"]
 
     with open(project + "/data/eval_info.pkl", "rb") as f:
-        eval_info = pickle.load( f)
+        eval_info = pickle.load(f)
 
         performance_metrics = compute_performance_metrics(eval_info, n_trials, n_agents)
         behavioral_metrics, df_volatility, df_conformity = compute_behavioral_metrics(eval_info, n_trials, n_agents)
 
-
         metrics = {**performance_metrics, **behavioral_metrics}
 
         # pkl file contains values in all trials
-        save_file = project+ "/data/pop_metrics.pkl"
+        save_file = project + "/data/pop_metrics.pkl"
         with open(save_file, "wb") as f:
             pickle.dump(metrics, f)
 
         # yaml file contains average over trials
-
-        metrics_mean ={}
+        metrics_mean = {}
         metrics_var = {}
         for key, value in metrics.items():
             metrics_mean[key + "_mean"] = float(np.nanmean(value))
             metrics_var[key + "_var"] = float(np.nanvar(value))
 
-        metrics_stat = {**metrics_mean , **metrics_var}
+        metrics_stat = {**metrics_mean, **metrics_var}
 
-        save_file = project+ "/data/pop_metrics.yaml"
+        save_file = project + "/data/pop_metrics.yaml"
         with open(save_file, "w") as f:
             yaml.dump(metrics_stat, f)
 
@@ -182,13 +241,21 @@ def compute_metrics_project(project):
 
 
 def measure_intergroup_alignment(projects):
+    """ Measure intergroup alignment.
+
+    Params
+    ------
+    projects: list of str
+        directories of projects for comparing alignment
+
+    """
     total_occurs = {}
     for project in projects:
         # find label of project
-        config = yaml.safe_load("projects/" + project + "config.yaml")
+        config = yaml.safe_load(open(project + "/config.yaml", 'r'))
         label = config["shape"]
 
-        with open("projects/" + project + "/data/occurs.pkl", "w") as f:
+        with open(project + "/data/occurs.pkl", "rb") as f:
             occurs = pickle.load(f)
         total_occurs[label] = occurs
 
@@ -201,14 +268,14 @@ def measure_intergroup_alignment(projects):
 
             for idx1, data1 in total_occurs.items():
                 for idx2, data2 in total_occurs.items():
-                    if idx1!=idx2:
+                    if idx1 != idx2:
 
                         current_data1 = data1.loc[data1["trial"] == trial]
                         current_data1 = current_data1.loc[current_data1["train_step"] == step]
                         current_data1 = current_data1.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
 
                         current_data2 = data2.loc[data2["trial"] == trial]
-                        current_data2= current_data2.loc[current_data2["train_step"] == step]
+                        current_data2 = current_data2.loc[current_data2["train_step"] == step]
                         current_data2 = current_data2.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
 
                         # compare the two dicts
@@ -231,21 +298,18 @@ def measure_intergroup_alignment(projects):
                         if tuple([idx1, idx2]) not in step_diffs.keys() and tuple([idx2, idx1]) not in step_diffs.keys(
 
                         ):
-                            step_diffs[tuple([idx1, idx2])] = [diffs/max([len(list1), len(list2),1])]
+                            step_diffs[tuple([idx1, idx2])] = [diffs / max([len(list1), len(list2), 1])]
                         else:
                             if tuple([idx1, idx2]) in step_diffs.keys():
-                                step_diffs[tuple([idx1, idx2])].append(diffs/max([len(list1), len(list2),1]))
+                                step_diffs[tuple([idx1, idx2])].append(diffs / max([len(list1), len(list2), 1]))
 
-                        diff = diffs/max([len(list1), len(list2),1])
+                        diff = diffs / max([len(list1), len(list2), 1])
                         df = pd.DataFrame(columns=["pair", "trial", "train_step", "diff"])
-                        df.loc[0] = [tuple([idx1,idx2]), trial, step, 1-diff]
+                        df.loc[0] = [tuple([idx1, idx2]), trial, step, 1 - diff]
 
                         if len(total_df):
                             total_df = total_df.append(df, ignore_index=True)
                         else:
                             total_df = df
 
-
-
     return total_df
-

@@ -9,6 +9,7 @@ from lib.stable_baselines3.common.utils import set_random_seed
 from sapiens.utils import group_mnemonic_metrics, indiv_mnemonic_metrics
 from sapiens.topologies import init_topology, update_topology_periodic, update_topology_Boyd
 
+
 class Sapiens:
     """
     Structuring multi-Agent toPology for Innovation through ExperieNce Sharing (SAPIENS)
@@ -24,23 +25,110 @@ class Sapiens:
     eval_envs: list of gym enviroments
         for each agent, the evaluation environment
 
+
+    n_agents: int
+        number of agents the group consists of
+
+    project_path: str
+        directory  (under SAPIENS) to save the project in
+
+    shape: str
+        social network topology. Choose between no-sharing, fully-connected, small-world, ringt, dynamic-Boyd,
+        dynamic-periodic
+
     p_s: float
         probability of sharing experience at the end of an episode
+
+    L_s: int
+        number of simultaneously shared samples
+
+
+    total_episodes: int
+        number of training episodes
+
+
+    n_neighbors: int
+        number of neighbors (only used in small-world shape)
+
+    n_subgroups: int
+        number of sub-groups (only used in dynamic-Boyd shape)
+
+    phase_periods: list of int
+        number of episodes the phase of a shape will last (only used in dynamic-periodic shape)
+
+    migrate_rate: float
+        probability of ivisit (only sued in dynamic-Boyd)
+
+    visit_duration: int
+        number of episodes a visit lasts (only sued in dynamic-Boyd)
+
+    measure_mnenomic: bool
+        indicates if mnemonic metrics will be measured for this project (requires processing replay buffers)
+
+    measure_intergroup_alignmment: bool
+        indicates if intergroup alignment will be measured for this project (requires saving replay buffers)
+
+    n_trials: int
+        number of independent trials
+
+    buffer_size: int
+        size of replay buffer
+
+    batch_size: int
+        batch size used for gradient updates
+
+    num_neurons: int
+        number of neurons in each layer
+
+    num_layers: int
+        number of layers in neural network
+
+    gamma: float
+        discount factor
+
+    learning_rate: float
+        learning rate for optimser
+
+    collect_metrics_period: int
+        every how many iterations mnemonic metrics are measured
+
+    policy: str
+        type of policy
     """
 
-    def __init__(self, train_envs, eval_envs, n_agents, project_path, shape, total_episodes, n_neighbors=1,
-                 n_subgroups=1, phase_periods=[10,10], measure_mnemonic=False, measure_intergroup_alignment=False,
-        n_trials=1,
-                 buffer_size=5000,
-                 batch_size=128,
-                 migrate_rate=0.01, num_neurons=64, num_layers=2, visit_duration=10, seed=0, gamma=0.9, L_s=1,
-                 learning_rate=0.001, p_s=1, collect_metrics_period=500, policy="MlpPolicy"):
+    def __init__(self,
+                 train_envs: list = tuple([]),
+                 eval_envs: list = tuple([]),
+                 n_agents: int = 10,
+                 project_path: str = "",
+                 shape: str = "",
+                 L_s: int = 1,
+                 p_s: int = 1,
+                 total_episodes: int = 100000,
+                 n_neighbors: int = 4,
+                 n_subgroups: int = 5,
+                 phase_periods: list = tuple([10, 10]),
+                 migrate_rate: float = 0.01,
+                 visit_duration: int = 10,
+                 measure_mnemonic: bool = False,
+                 measure_intergroup_alignment: bool = False,
+                 n_trials: int = 1,
+                 buffer_size: int = 5000,
+                 batch_size: int = 128,
+                 num_neurons: int = 64,
+                 num_layers: int = 2,
+                 seed: int = 0,
+                 gamma: float = 0.9,
+                 learning_rate: float = 0.001,
+                 collect_metrics_period: int = 500,
+                 policy: str = "MlpPolicy"):
+
         self.train_envs = train_envs
         self.eval_envs = eval_envs
         self.shape = shape
         self.n_agents = n_agents
         self.n_neighbors = n_neighbors
-        self.project_path = "projects/" + project_path
+        self.project_path = project_path
         self.collect_metrics_period = collect_metrics_period
         self.seed = seed
         self.policy = policy
@@ -51,7 +139,7 @@ class Sapiens:
         self.L_s = L_s
         self.gamma = gamma
         self.learning_rate = learning_rate
-        self.total_episodes= total_episodes
+        self.total_episodes = total_episodes
         self.measure_mnemonic = measure_mnemonic
         self.measure_intergroup_alignment = measure_intergroup_alignment
         self.n_trials = n_trials
@@ -65,9 +153,6 @@ class Sapiens:
         self.timer_dynamic_boyd = 0
         self.migrate_rate = migrate_rate
         self.visit_duration = visit_duration
-
-
-
 
     def _setup_model(self):
         self.models = []
@@ -96,46 +181,48 @@ class Sapiens:
                     os.makedirs(new_dir)
 
         # save experiment config for reproducibility
-        config = {key:value for key, value in self.__dict__.items() if not key.startswith('__')and not callable(key) }
+        config = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
         del config["train_envs"]
         del config["eval_envs"]
         config["recipe_path"] = self.train_envs[0].data_path
+
         with open(self.project_path + "/config.yaml", "w") as f:
             yaml.dump(config, f)
 
-
-
-    def create_callbacks(self, agent_idx):
+    def create_callbacks(self, agent_idx: int, project_path: str):
         """ Defines callbacks for one of the group's agents.
 
         Parameters
         ----------
         agent_idx: int
             agent index
+
+        project_path: str
+            path of current trial
         """
         # 1) Every eval_freq timesteps, the model evaluation determines if the model has improved, and saves this model
         eval_callback = EvalCallback(
             self.eval_envs[agent_idx],
-            log_path=self.project_path + "/tb_logs",
-            best_model_save_path=self.project_path + "/models",
+            log_path=project_path + "/tb_logs",
+            best_model_save_path=project_path + "/models",
             eval_freq=100,
             deterministic=True,
             render=False,
         )
         # 2) a regular saving point (every save_freq timesteps) is also made to measure improvement throughout training
         c_callback = CheckpointCallback(
-            save_freq=10000, save_path=self.project_path + "/models",
+            save_freq=10000, save_path=project_path + "/models",
             name_prefix=f"agent_{agent_idx}"
         )
         callbacks = [eval_callback, c_callback]
         return callbacks
 
-    def init_group(self):
+    def init_group(self, project_path: str):
         """ Initialize the ES-DQN agents of the group
         """
         if self.n_agents > 1:
             self.graph = init_topology(shape=self.shape, n_agents=self.n_agents,
-                                       project_path=self.project_path,
+                                       project_path=project_path,
                                        n_subgroups=self.n_subgroups, n_neighbors=self.n_neighbors)
 
         # NN architecture
@@ -162,7 +249,7 @@ class Sapiens:
                             L_s=self.L_s,
                             learning_starts=learning_starts,
                             optimize_memory_usage=True,
-                            tensorboard_log=self.project_path + "/tb_logs",
+                            tensorboard_log=project_path + "/tb_logs",
                             batch_size=self.batch_size,
                             policy_kwargs=policy_kwargs,
                             exploration_fraction=exploration_fraction,
@@ -174,7 +261,7 @@ class Sapiens:
             self.init_episode = 0
 
             # attach callbacks
-            temp_callbacks = self.create_callbacks(i)
+            temp_callbacks = self.create_callbacks(i, project_path)
             _, callback = agent._setup_learn(self.total_episodes, eval_env=self.eval_envs[i],
                                              callback=temp_callbacks)
             callbacks.append(callback)
@@ -200,15 +287,15 @@ class Sapiens:
         At each episode, an agent collects experience, sends experience to all its neighbors with probability p_s and
         trains.
         """
+        self._setup_model()
+
         for trial in range(self.n_trials):
 
-            self._setup_model()
-
-            self.project_path = self.project_path + "/trial_" + str(trial)
-            self.init_group()
+            project_path = self.project_path + "/trial_" + str(trial)
+            self.init_group(project_path)
 
             current_episode = self.init_episode
-            total_episodes= self.total_episodes + self.init_episode
+            total_episodes = self.total_episodes + self.init_episode
             if current_episode:
                 # if model is loaded train from scratch
                 learning_starts = current_episode
@@ -282,7 +369,10 @@ class Sapiens:
                     self.graph, self.visit, self.agents = update_topology_Boyd(agents=self.agents,
                                                                                graph=self.graph,
                                                                                migrate_rate=self.migrate_rate,
-                                                                               visit=self.visit)
+                                                                               visiting=self.visit,
+                                                                               project_path=project_path,
+                                                                               episode=current_episode)
+
                 # -----------------------------------------
             for c in self.callbacks:
                 c.on_training_end()

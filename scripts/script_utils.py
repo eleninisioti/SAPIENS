@@ -1,3 +1,7 @@
+""" Contains various utilities useful for scripts.
+"""
+
+
 metric_labels = {"norm_reward": "Reward, $R_t$",
                  "diversity": "Diversity, $D_t$",
                  "level": "Level, $L_t$",

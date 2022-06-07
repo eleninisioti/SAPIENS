@@ -142,14 +142,14 @@ class DES_DQN(DQN):
         agents: list of ES-DQN
             the group of agents
         """
-        self.visiting = True
-        self.old_neighbs = copy.deepcopy(self.neighbors)
+        self.visiting = False
+        self.old_neighbs = copy.copy(self.neighbors)
         self.neighbors = []
 
         random.shuffle(agents)
         for agent_idx, agent in enumerate(agents):
-            if agent not in self.old_neighbs:
-                potential_group = copy.deepcopy(agent.neighbors)
+            if agent not in self.old_neighbs and agent.idx != self.idx  and not self.visiting:
+                potential_group = copy.copy(agent.neighbors)
                 potential_group.append(agent)
 
                 # update immigrant with new neighbosrs
@@ -170,11 +170,24 @@ class DES_DQN(DQN):
 
                 # inform previous neighbors imigrant has left
                 for neighbor in self.old_neighbs:
-                    neighbor.neighbors.remove(self)
+                    for temp in neighbor.neighbors:
+                        if temp.idx == self.idx:
+                            neighbor.neighbors.remove(temp)
 
                     for idx, agent in enumerate(agents):
                         if agent.idx == neighbor.idx:
                             agents[idx] = neighbor
+
+                self.visiting = True
+                self.visit_count = 0
+                # just debug
+                nidxs= []
+                for agent in agents:
+                    if agent.idx == self.idx:
+                        for nghb in agent.neighbors:
+                            nidxs.append(nghb.idx)
+
+                print("I am", self.idx, 'and my new neighbors are', nidxs)
         return agents
 
     def visit_return(self, agents):
@@ -189,7 +202,7 @@ class DES_DQN(DQN):
             end_visit = True
             self.visiting = False
 
-            current_neighbs = copy.deepcopy(self.neighbors)
+            current_neighbs = copy.copy(self.neighbors)
             self.neighbors = []
 
             # inform past neighbors immigrant is coming back
@@ -208,14 +221,28 @@ class DES_DQN(DQN):
 
             # inform neighbors immigrant has left
             for neighbor in current_neighbs:
-                neighbor.neighbors.remove(self)
+                for temp in neighbor.neighbors:
+                    if temp.idx == self.idx:
+                        neighbor.neighbors.remove(temp)
 
                 for idx, agent in enumerate(agents):
                     if agent.idx == neighbor.idx:
                         agents[idx] = neighbor
 
+            # just debug
+            nidxs = []
+            for agent in agents:
+                if agent.idx == self.idx:
+                    for nghb in agent.neighbors:
+                        nidxs.append(nghb.idx)
+
+            print("I am", self.idx, 'and I am returning to', nidxs)
+
         elif self.visiting:
             end_visit = False
             self.visit_count += 1
+
+        else:
+            end_visit = False
 
         return agents, end_visit

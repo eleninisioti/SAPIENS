@@ -7,25 +7,56 @@ cm = 1 / 2.54
 FIG_SIZE = (8.48 * cm, 6 * cm)
 ORDER = ["no-sharing", "dynamic-Boyd", "fully-connected", "small-world", "ring"]
 
-def plot_intergroup_alignment(total_df, save_dir):
+
+def plot_intergroup_alignment(alignment, save_dir):
+    """ Plot inter-group alignment
+
+     alignment: Dataframe
+        contains infromation collected during the evaluation of the project
+
+    save_dir: str
+        directory in which to save the alignment plot
+
+    """
     fig, ax = plt.subplots(1, 1, figsize=FIG_SIZE)
 
     sns.lineplot(x="train_step",
                  y="diff",
-                 data=total_df,
+                 data=alignment,
                  palette="nipy_spectral",
                  ci="sd",
                  hue="pair")
 
     plt.set(xlabel=f"Training step, $t$", ylabel="Inter-group alignment, \n  $A^{\mathcal{G}_j, \mathcal{G}_j}_t$")
-    save_path = "projects/" + save_dir + "/plots"
+    save_path = save_dir + "/plots"
     if not os.path.exists(save_path):
         os.path.makedirs(save_path)
 
-    plt.savefig(save_path +  "inter_total.pdf")
+    plt.savefig(save_path + "inter_total.pdf")
+    plt.savefig(save_path + "inter_total.png")
     plt.clf()
 
-def plot_project(eval_info, volatilities, conformities, measure_mnemonic,  project):
+
+def plot_project(eval_info, volatilities, conformities, measure_mnemonic, project):
+    """ Produce all plots related to a project.
+
+    eval_info: Dataframe
+        contains infromation collected during the evaluation of the project
+
+    volatilities: Dataframe
+        contains infromation about volatility
+
+    conformities: Dataframe
+        contains infromation about conformity
+
+    measure_mnemonic: bool
+        indicates whether to plot mnemonic metrics
+
+
+    project: str
+        project directory
+
+    """
     plot_metric_with_time(eval_info, "norm_reward", project)
     plot_metric_with_time(volatilities, "volatility", project)
     plot_metric_with_time(conformities, "group_conformity", project)
@@ -36,9 +67,18 @@ def plot_project(eval_info, volatilities, conformities, measure_mnemonic,  proje
         plot_metric_with_time(eval_info, "intragroup_alignment", project)
 
 
-
-
 def plot_metric_with_time(data, metric, project):
+    """ Plot a specific metric with training time.
+
+    data: Dataframe
+        contains evaluation information
+
+    metric: str
+        name of metric
+
+    project: str
+        project directory
+    """
     # ----- plot average and maximum performance across population -----
     if "group" in metric:
         modes = ["avg"]
@@ -81,14 +121,18 @@ def plot_metric_with_time(data, metric, project):
 
         plt.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
         metric_label = metric_labels[metric]
-        if "group" not in metric and mode=="avg":
+        if "group" not in metric and mode == "avg":
             metric_label = metric_labels_avg[metric]
-        elif mode=="max":
+        elif mode == "max":
             metric_label = metric_labels_max[metric]
         ax.set(xlabel=f"Training step, $t$", ylabel=metric_label)
         fig.tight_layout()
 
-        save_path = project + "/plots/" + mode + "_" + metric + ".pdf"
-        plt.savefig(save_path)
-        plt.clf()
+        save_dir = project + "/plots/"
 
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        plt.savefig(save_dir + mode + "_" + metric + ".pdf")
+        plt.savefig(save_dir + mode + "_" + metric + ".png")
+
+        plt.clf()

@@ -60,8 +60,8 @@ def run_all_main():
 
     """
 
-    top_dir = "paper/main"
-    shapes = ["no-sharing", "fully-connected", "small-world", "ring", "dynamic-Boyd"]
+    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/main"
+    shapes = ["fully-connected", "small-world", "ring", "dynamic-Boyd"]
     n_agents = 10
 
     gamma = 0.9
@@ -115,7 +115,7 @@ def run_scaling():
 
     """
 
-    top_dir = "paper/appendix/scaling"
+    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/appendix/scaling"
     shapes = ["fully-connected", "small-world", "ring", "dynamic-Boyd"]
 
     gamma = 0.9
@@ -172,7 +172,7 @@ def run_varying_dynamic_topologies():
 
     """
 
-    top_dir = "paper/appendix/varying_dynamic/dynamic_Boyd"
+    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/appendix/varying_dynamic/dynamic_Boyd"
     shape = "dynamic-Boyd"
 
     gamma = 0.9
@@ -229,7 +229,7 @@ def run_varying_dynamic_topologies():
                 evaluate_project(project_path)
 
     # ----- tuning dynamic-periodic
-    top_dir = "paper/appendix/varying_dynamic/dynamic_Boyd"
+    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/appendix/varying_dynamic/dynamic_Boyd"
     shape = "dynamic-periodic"
 
     gamma = 0.9
@@ -289,7 +289,7 @@ def run_mnemonic():
 
     """
 
-    top_dir = "paper/mnemonic"
+    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/mnemonic"
     shapes = ["no-sharing", "fully-connected", "small-world", "ring", "dynamic-Boyd"]
     n_agents = 10
 
@@ -344,7 +344,7 @@ def run_intergroup_alignment():
 
     """
 
-    top_dir = "paper/mnemonic"
+    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/mnemonic"
     shapes = ["no-sharing", "fully-connected", "small-world", "ring", "dynamic-Boyd"]
     n_agents = 10
 
