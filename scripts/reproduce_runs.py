@@ -61,7 +61,7 @@ def run_all_main():
     """
 
     top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/main"
-    shapes = ["fully-connected", "small-world", "ring", "dynamic-Boyd"]
+    shapes = ["small-world", "ring", "dynamic-Boyd", "fully-connected"]
     n_agents = 10
 
     gamma = 0.9

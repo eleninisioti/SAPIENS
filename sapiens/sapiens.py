@@ -97,8 +97,8 @@ class Sapiens:
     """
 
     def __init__(self,
-                 train_envs: list = tuple([]),
-                 eval_envs: list = tuple([]),
+                 train_envs: list = [],
+                 eval_envs: list = [],
                  n_agents: int = 10,
                  project_path: str = "",
                  shape: str = "",
@@ -107,7 +107,7 @@ class Sapiens:
                  total_episodes: int = 100000,
                  n_neighbors: int = 4,
                  n_subgroups: int = 5,
-                 phase_periods: list = tuple([10, 10]),
+                 phase_periods: list = [10, 10],
                  migrate_rate: float = 0.01,
                  visit_duration: int = 10,
                  measure_mnemonic: bool = False,

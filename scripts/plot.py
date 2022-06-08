@@ -27,13 +27,16 @@ def plot_intergroup_alignment(alignment, save_dir):
                  ci="sd",
                  hue="pair")
 
-    plt.set(xlabel=f"Training step, $t$", ylabel="Inter-group alignment, \n  $A^{\mathcal{G}_j, \mathcal{G}_j}_t$")
+    ax.set(xlabel=f"Training step, $t$", ylabel="Inter-group alignment, \n  $A^{\mathcal{G}_j, \mathcal{G}_j}_t$")
     save_path = save_dir + "/plots"
     if not os.path.exists(save_path):
         os.path.makedirs(save_path)
 
-    plt.savefig(save_path + "inter_total.pdf")
-    plt.savefig(save_path + "inter_total.png")
+    ax.legend(loc="lower left")
+    ax.legend().set_title("")
+
+    plt.savefig(save_path + "/inter_total.pdf")
+    plt.savefig(save_path + "/inter_total.png")
     plt.clf()
 
 

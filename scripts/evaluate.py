@@ -167,6 +167,8 @@ def evaluate_project(project):
     total_intragroup_alignment = []
     total_buffer_keys = []
     total_buffer_values = []
+    occurs_steps = []
+    occurs_trials = []
 
     last_length = -1
 
@@ -203,10 +205,14 @@ def evaluate_project(project):
                     total_diversities.append(diversity)
                     total_group_diversities.append(group_diversity)
                     total_intragroup_alignment.append(intragroup_alignment)
-                    total_buffer_keys.append(buffer_keys)
-                    total_buffer_values.append(buffer_values)
-    occurs = {}
 
+                    total_buffer_keys.extend(buffer_keys)
+                    total_buffer_values.extend(buffer_values)
+                    occurs_steps.extend([step] * len(buffer_keys))
+                    occurs_trials.extend([trial] * len(buffer_keys))
+
+
+    occurs = {}
     if config["measure_mnemonic"]:
         eval_info = pd.DataFrame({"train_step": total_steps,
                                   "norm_reward": np.array(total_rewards) / max_rew,
@@ -221,8 +227,8 @@ def evaluate_project(project):
         if config["measure_intergroup_alignment"]:
             occurs = pd.DataFrame({"buffer_keys": total_buffer_keys,
                                    "buffer_values": total_buffer_values,
-                                   "train_step": total_steps,
-                                   "trial": total_trials})
+                                   "train_step": occurs_steps,
+                                   "trial": occurs_trials})
 
     else:
 

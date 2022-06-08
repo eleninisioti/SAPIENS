@@ -191,7 +191,7 @@ def compute_behavioral_metrics(eval_info, n_trials, n_agents):
     n_agents: int
         number of agents
     """
-    volatility, df_volatility = measure_volatility(eval_info, n_trials, n_agents)
+    volatility, df_volatility = measure_volatility(eval_info, n_trials)
     conformity, df_conformity = measure_conformity(eval_info, n_trials, n_agents)
 
     metrics = {"volatility": volatility, "conformity": conformity}
@@ -262,17 +262,20 @@ def measure_intergroup_alignment(projects):
     n_steps = list(range(0, config["total_episodes"] * 16, 10000))
     n_trials = config["n_trials"]
     total_df = []
-    for step in n_steps:
+    for step in n_steps[1:]:
         step_diffs = {}
         for trial in range(n_trials):
+            done_pairs = []
 
             for idx1, data1 in total_occurs.items():
                 for idx2, data2 in total_occurs.items():
-                    if idx1 != idx2:
+                    if idx1 != idx2 and tuple([idx1, idx2]) not in done_pairs and  tuple([idx2, idx1]) not in \
+                            done_pairs:
 
                         current_data1 = data1.loc[data1["trial"] == trial]
                         current_data1 = current_data1.loc[current_data1["train_step"] == step]
                         current_data1 = current_data1.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
+                        #to_dict()
 
                         current_data2 = data2.loc[data2["trial"] == trial]
                         current_data2 = current_data2.loc[current_data2["train_step"] == step]
@@ -295,21 +298,16 @@ def measure_intergroup_alignment(projects):
                             if (len(list2) > idx) and el != list2[idx]:
                                 diffs += 1
 
-                        if tuple([idx1, idx2]) not in step_diffs.keys() and tuple([idx2, idx1]) not in step_diffs.keys(
-
-                        ):
-                            step_diffs[tuple([idx1, idx2])] = [diffs / max([len(list1), len(list2), 1])]
-                        else:
-                            if tuple([idx1, idx2]) in step_diffs.keys():
-                                step_diffs[tuple([idx1, idx2])].append(diffs / max([len(list1), len(list2), 1]))
-
                         diff = diffs / max([len(list1), len(list2), 1])
                         df = pd.DataFrame(columns=["pair", "trial", "train_step", "diff"])
                         df.loc[0] = [tuple([idx1, idx2]), trial, step, 1 - diff]
 
                         if len(total_df):
+
                             total_df = total_df.append(df, ignore_index=True)
                         else:
                             total_df = df
+
+                        done_pairs.append(tuple([idx1, idx2]))
 
     return total_df
