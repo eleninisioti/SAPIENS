@@ -164,7 +164,8 @@ def run_intergroup_alignment(trial):
 
     """
 
-    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/mnemonic"
+    now = datetime.datetime.now()
+    project = top_dir + str(now.day) + "_" + str(now.month) + "_" + str(now.year) + "/alignment_"
     shapes = ["no-sharing", "fully-connected", "small-world", "ring", "dynamic-Boyd"]
     n_agents = 10
 
@@ -180,7 +181,7 @@ def run_intergroup_alignment(trial):
 
         for shape in shapes:
 
-            project_path = top_dir + "/task_" + task + "/shape_" + shape
+            project_path = project + "/task_" + task + "/shape_" + shape
             train_envs = []
             eval_envs = []
             for i in range(n_agents):
