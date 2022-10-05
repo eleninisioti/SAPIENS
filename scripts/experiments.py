@@ -6,7 +6,7 @@ project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
 sys.path.insert(0,project_path)
 __file__ = "scripts.evaluate"
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 print(sys.path)
 import gym
 import copy
