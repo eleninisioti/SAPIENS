@@ -1,7 +1,7 @@
 import os
 import sys
 
-calling_dir = os.path.dirname(os.path.realpath(__file__))
+calling_dir = os.getcwd()
 sys.path.append(calling_dir)
 
 def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, account="jeanzay_id"):
