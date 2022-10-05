@@ -49,7 +49,6 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
         batch_cmd = python_path + " " + script
         fh.writelines(batch_cmd)
 
-    os.system("cd " + calling_dir)
     os.system("sbatch %s" % slurmjob_path)
 
 
