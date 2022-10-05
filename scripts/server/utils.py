@@ -19,7 +19,7 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
     if not os.path.exists(logs_dir + "/" + job_name):
         os.makedirs(logs_dir + "/" + job_name)
 
-    slurmjob_path = op.join(slurm_dir + "/" + job_name + "/script.sh")
+    slurmjob_path = os.path.join(slurm_dir + "/" + job_name + "/script.sh")
     create_slurmjob_cmd = "touch {}".format(slurmjob_path)
     os.system(create_slurmjob_cmd)
 
