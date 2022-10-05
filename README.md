@@ -40,7 +40,7 @@ With [scripts/reproduce_runs.py](scripts/reproduce_runs.py) you can run all simu
 
 This file is useful for looking at how the experiments were configured but better avoid running it: simulations will run locally and sequentially and will take months to complete.
 
-Instead, you can access the output of our simulations on this [online repo](). Due to space limitation we do not include all checkpoint models, but the log files produced by processing the checkpoint models.
+Instead, you can access the output of our simulations on this [online repo](https://drive.google.com/drive/folders/1x6NZe2Aw3udhDNi-V0ljgFs_uFPPzK7l?usp=sharing). Due to space limitation we do not include all checkpoint models, but the log files produced by processing the checkpoint models.
 
 Download this zip file and uncompress it under the [projects](projects) directory. This should create a projects/paper_done sub-directory.
 
