@@ -5,6 +5,8 @@ import sys
 import os
 #sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 project="/gpfsdswork/projects/rech/imi/utw61ti/SAPIENS/scripts"
+project="/gpfsdswork/projects/rech/imi/utw61ti/SAPIENS"
+
 sys.path.append(project)
 
 print(sys.path)
