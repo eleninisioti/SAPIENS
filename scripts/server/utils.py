@@ -1,7 +1,8 @@
 import os
 import sys
-calling_dir = os.getcwd()
-sys.path.append(calling_dir)
+
+project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
+sys.path.append(project_path)
 
 def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, account="jeanzay_id"):
     """
