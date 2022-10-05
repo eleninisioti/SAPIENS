@@ -4,6 +4,7 @@ import os
 import sys
 calling_dir = os.getcwd()
 sys.path.append(calling_dir)
+print(sys.path)
 import gym
 import copy
 from lib.wordcraft.utils.task_utils import recipe_book_info
