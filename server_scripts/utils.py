@@ -1,8 +1,9 @@
 import os
 import sys
-sys.path.append(os.getcwd())
-print(os.getcwd())
-os.chdir(os.getcwd())
+project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
+sys.path.append(project_path)
+
+
 
 import server_scripts.experiments
 
