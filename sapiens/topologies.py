@@ -62,6 +62,7 @@ def init_topology(shape, n_agents, project_path, n_subgroups=1, n_neighbors=1):
         graph = nx.watts_strogatz_graph(n=n_agents, k=n_neighbors, p=0.2)
 
     # ----- save topology ------
+    print("saving under", project_path)
     nx.draw(graph, node_color='green', node_size=150)
     plt.savefig(project_path + "/plots/network.png")
     nx.write_gexf(graph, path=project_path + "/plots/graph.gexf")
