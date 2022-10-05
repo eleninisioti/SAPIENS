@@ -183,7 +183,6 @@ class Sapiens:
         config = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
         del config["train_envs"]
         del config["eval_envs"]
-        config["recipe_path"] = self.train_envs[0].env_config["data_path"]
         self.eval_freq = 100
         self.save_freq = 10000
 
@@ -228,11 +227,7 @@ class Sapiens:
                                        n_subgroups=self.n_subgroups, n_neighbors=self.n_neighbors)
 
         # NN architecture
-        if "gvgai" in self.train_envs[0].unwrapped.spec.id:
-            policy_kwargs = custom_nn()
-            self.policy = "CnnPolicy"
-        else:
-            policy_kwargs = dict(net_arch=[self.num_neurons] * self.num_layers)
+        policy_kwargs = dict(net_arch=[self.num_neurons] * self.num_layers)
 
         # ----- for each agent: 1) check if we want to reload or train from scratch 3) initialize 4) update neighbors
         agents = []
