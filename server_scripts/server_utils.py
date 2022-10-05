@@ -11,7 +11,7 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
     """
     TODO
     """
-    script = "server_scripts/experiments.py " + str(trial)
+    script = "server_scripts/server_experiments.py " + str(trial)
     if account == "jeanzay_id":
         print("You must replace jeanzay_id with your own jeanzay id to run experiments on the server")
 
