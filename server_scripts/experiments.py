@@ -3,7 +3,7 @@
 import sys
 
 import os
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 
 print(sys.path)
@@ -16,7 +16,7 @@ from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 import lib.wordcraft
 from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 from sapiens.sapiens import Sapiens
-from scripts.evaluate import evaluate_project
+import scripts.evaluate
 from lib.stable_baselines3.common.env_util import make_vec_env
 import datetime
 
