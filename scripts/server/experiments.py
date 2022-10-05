@@ -1,7 +1,6 @@
 """ Running this script will launch simulations for collecting all results in the paper.
 """
 import sys
-sys.path.append(".")
 import gym
 import copy
 from lib.wordcraft.utils.task_utils import recipe_book_info
@@ -111,7 +110,7 @@ def mnemonic_dynamic_merging(trial):
     batch_size = 64
     num_neurons = 64
     num_layers = 2
-    tasks = {"merging": 1e7}
+    tasks = {"merging_paths": 1e7}
 
     for task, total_episodes in tasks.items():
 
