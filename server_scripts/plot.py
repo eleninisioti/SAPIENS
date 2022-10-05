@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-from scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
+from server_scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
 
 cm = 1 / 2.54
 FIG_SIZE = (8.48 * cm, 6 * cm)

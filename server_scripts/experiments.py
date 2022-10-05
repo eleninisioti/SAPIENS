@@ -17,7 +17,7 @@ from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 import lib.wordcraft
 from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 from sapiens.sapiens import Sapiens
-import evaluate
+import server_scripts.evaluate
 from lib.stable_baselines3.common.env_util import make_vec_env
 import datetime
 
