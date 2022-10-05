@@ -183,15 +183,9 @@ class Sapiens:
         config = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
         del config["train_envs"]
         del config["eval_envs"]
-        if "wordcraft" in self.train_envs[0].unwrapped.spec.id:
-            config["recipe_path"] = self.train_envs[0].data_path
-            self.eval_freq = 100
-            self.save_freq = 1000
-
-        else:
-
-            self.eval_freq = 100
-            self.save_freq = 50
+        config["recipe_path"] = self.train_envs[0].data_path
+        self.eval_freq = 100
+        self.save_freq = 10000
 
         with open(self.project_path + "/config.yaml", "w") as f:
             yaml.dump(config, f)
