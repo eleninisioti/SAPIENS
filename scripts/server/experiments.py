@@ -1,6 +1,9 @@
 """ Running this script will launch simulations for collecting all results in the paper.
 """
+import os
 import sys
+calling_dir = os.getcwd()
+sys.path.append(calling_dir)
 import gym
 import copy
 from lib.wordcraft.utils.task_utils import recipe_book_info
