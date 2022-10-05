@@ -21,7 +21,7 @@ from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 from lib.wordcraft.utils.task_utils import recipe_book_info
 from gym.wrappers import FlattenObservation
 from server_scripts.plot import plot_project
-from serve_scripts.compute_metrics import compute_metrics_project
+from server_scripts.compute_metrics import compute_metrics_project
 
 
 def process_mnemonic(model, last_length, process_occurs):
