@@ -1,0 +1,10 @@
+name: sapiens
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - networkx==2.5
+  - matplotlib
+  - pandas==1.2.2
+  - seaborn
+  - java-jdk=8
