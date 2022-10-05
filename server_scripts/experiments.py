@@ -4,7 +4,11 @@ import os
 import sys
 project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
 sys.path.append(project_path)
+project_path = "/gpfsssd/scratch/rech/imi/utw61ti/workspace/SAPIENS"
+sys.path.append(project_path)
+
 print(sys.path)
+
 import gym
 import copy
 from lib.wordcraft.utils.task_utils import recipe_book_info
