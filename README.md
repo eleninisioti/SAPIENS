@@ -50,24 +50,7 @@ You can now reproduce all visualization presented in the paper. Run:
 
 This will save some general plots under [visuals](visuals) and project-specific plots are saved under the corresponding project in [projects/paper_done]([projects/paper_done])
 
-## Cite this paper
 
-if you have used this code please cite:
-
-````
-```bibtex
-@misc{https://doi.org/10.48550/arxiv.2206.05060,
-  doi = {10.48550/ARXIV.2206.05060},  
-  url = {https://arxiv.org/abs/2206.05060},  
-  author = {Nisioti, Eleni and Mahaut, Mateo and Oudeyer, Pierre-Yves and Momennejad, Ida and Moulin-Frier, Clément},  
-  keywords = {Artificial Intelligence (cs.AI), Multiagent Systems (cs.MA), Social and Information Networks (cs.SI), FOS: Computer and information sciences, FOS: Computer and information sciences},  
-  title = {Social Network Structure Shapes Innovation: Experience-sharing in RL with SAPIENS},  
-  publisher = {arXiv},  
-  year = {2022},  
-  copyright = {Creative Commons Attribution 4.0 International}
-}
-```
-````
 
 
 
