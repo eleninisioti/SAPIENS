@@ -51,5 +51,5 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
 
 if __name__== "__main__":
     job_name = "run_mnemonic"
-    for trial in range(10):
+    for trial in range(5):
         run_server(job_name=job_name +"_trial_" + str(trial), trial=trial, account="utw61ti")
