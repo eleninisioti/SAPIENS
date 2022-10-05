@@ -105,6 +105,7 @@ class Sapiens:
                  L_s: int = 1,
                  p_s: int = 1,
                  total_episodes: int = 100000,
+                 task: str="",
                  n_neighbors: int = 4,
                  n_subgroups: int = 5,
                  phase_periods: list = [10, 10],
@@ -126,6 +127,7 @@ class Sapiens:
         self.train_envs = train_envs
         self.eval_envs = eval_envs
         self.shape = shape
+        self.task = task
         self.n_agents = n_agents
         self.n_neighbors = n_neighbors
         self.project_path = project_path

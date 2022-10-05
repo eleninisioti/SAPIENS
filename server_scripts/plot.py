@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
-from server_scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
+from scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
 
 cm = 1 / 2.54
 FIG_SIZE = (8.48 * cm, 6 * cm)
@@ -40,7 +40,7 @@ def plot_intergroup_alignment(alignment, save_dir):
     plt.clf()
 
 
-def plot_project(eval_info, volatilities, conformities, measure_mnemonic, project):
+def plot_project(eval_info, volatilities, conformities, measure_mnemonic, project, max_step):
     """ Produce all plots related to a project.
 
     eval_info: Dataframe
@@ -61,8 +61,8 @@ def plot_project(eval_info, volatilities, conformities, measure_mnemonic, projec
 
     """
     plot_metric_with_time(eval_info, "norm_reward", project)
-    plot_metric_with_time(volatilities, "volatility", project)
-    plot_metric_with_time(conformities, "group_conformity", project)
+    plot_metric_with_time(volatilities, "volatilities", project)
+    plot_metric_with_time(conformities, "conformities", project)
 
     if measure_mnemonic:
         plot_metric_with_time(eval_info, "diversity", project)
@@ -93,11 +93,16 @@ def plot_metric_with_time(data, metric, project):
         for label, performance in data.items():
 
             # preprocess data so that the confidence intervals are across trials
+            if "trial" not in performance:
+                print("check")
             trials = list(set(performance["trial"]))
             total = []
 
             for trial_idx, trial in enumerate(trials):
                 trial_perf = performance.loc[performance["trial"] == trial]
+
+                if metric not in trial_perf:
+                    print("check")
 
                 if mode == "avg":
                     average_perf = trial_perf.groupby('train_step', as_index=False)[metric].mean()
@@ -129,10 +134,12 @@ def plot_metric_with_time(data, metric, project):
         elif mode == "max":
             metric_label = metric_labels_max[metric]
         ax.set(xlabel=f"Training step, $t$", ylabel=metric_label)
+        ax.legend(loc="best", ncol=int(len(all_labels)/3), prop={'size': 7})
+
         fig.tight_layout()
 
-        save_dir = project + "/plots/"
 
+        save_dir = project + "/plots/"
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         plt.savefig(save_dir + mode + "_" + metric + ".pdf")

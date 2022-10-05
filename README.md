@@ -16,17 +16,62 @@ Using SAPIENS we can define groups of agents that are connected with others base
 
 
 
-## How to use SAPIENS
+## Running experiments
 
-In [this google colab notebook](https://colab.research.google.com/drive/1_iwb0rkBgDUzWOcuP96BpOLdw0QuLd0c?usp=sharing) we explain how one can set up SAPIENS, launch experiments with different social network topologies and visualize various performance metrics.
+### Install required packages
 
-## How to reproduce the paper's results
+You can install all required python packages by creating a new conda environment containing the packages in [environment.yml](environment.yml):
 
-Under the [scripts](scripts) directory you will find scripts useful for rerunning the experiments and producing the plots presented in the paper.
+`conda env create -f environment.yml`
 
-In particular, running the [scripts/reproduce_runs.py](scripts/reproduce_runs.py) will run **all** experiments presented in the paper. This will take a lot of memory and time, as experiments are executed sequentially. It is however useful to take a look at how to configure experiments with various topologies, tasks and group sizes.
+And then activating the environment:
 
-To avoid rerunning all experiments, we provide our data under the [projects/paper](projects/paper) directory. Due to space restrictions we do not include the model files, but the data and plots produced during their evaluation.
+`conda activate sapiens`
+
+### Example usages
+
+Under [notebooks](notebooks) there is a Jupyter notebook that will guide you through setting up simulations with a fully-connected and a dynamic social network structure for solving Wordcraft tasks. It also explains how you can access visualizations of the metrics produced during the experiment. You can also directly open it in [google colab](https://colab.research.google.com/drive/1_iwb0rkBgDUzWOcuP96BpOLdw0QuLd0c?usp=sharing).
+
+### Reproducing the paper results
+
+Scripts under the [scripts](scripts) directory are useful for this:
+
+With [scripts/reproduce_runs.py](scripts/reproduce_runs.py) you can run all simulations presented in the paper from scratch.
+
+This file is useful for looking at how the experiments were configured but better avoid running it: simulations will run locally and sequentially and will take months to complete.
+
+Instead, you can access the output of our simulations on this [online repo](). Due to space limitation we do not include all checkpoint models, but the log files produced by processing the checkpoint models.
+
+Download this zip file and uncompress it under the [projects](projects) directory. This should create a projects/paper_done sub-directory.
+
+You can now reproduce all visualization presented in the paper. Run:
+
+`python scripts/reproduce_visuals.py`
+
+This will save some general plots under [visuals](visuals) and project-specific plots are saved under the corresponding project in [projects/paper_done]([projects/paper_done])
+
+## Cite this paper
+
+if you have used this code please cite:
+
+````
+```bibtex
+@misc{https://doi.org/10.48550/arxiv.2206.05060,
+  doi = {10.48550/ARXIV.2206.05060},  
+  url = {https://arxiv.org/abs/2206.05060},  
+  author = {Nisioti, Eleni and Mahaut, Mateo and Oudeyer, Pierre-Yves and Momennejad, Ida and Moulin-Frier, Clément},  
+  keywords = {Artificial Intelligence (cs.AI), Multiagent Systems (cs.MA), Social and Information Networks (cs.SI), FOS: Computer and information sciences, FOS: Computer and information sciences},  
+  title = {Social Network Structure Shapes Innovation: Experience-sharing in RL with SAPIENS},  
+  publisher = {arXiv},  
+  year = {2022},  
+  copyright = {Creative Commons Attribution 4.0 International}
+}
+```
+````
+
+
+
+
 
 
 

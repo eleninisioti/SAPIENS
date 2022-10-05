@@ -11,33 +11,7 @@ import lib.wordcraft
 from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 from sapiens.sapiens import Sapiens
 from scripts.evaluate import evaluate_project
-from lib.stable_baselines3.common.env_util import make_vec_env
-
-
-def build_envs(env_config, n_envs=1):
-    """
-    Environment generation tool
-
-    Params
-    ----------
-
-    recipe_path : string, default = ".",
-        path to the recipe book used to generate the environment
-
-    log_path: string, default = ".",
-        path to save tensorboard statistics
-    """
-    env_name = "wordcraft-multistep-no-goal-v0"
-    # use gym to generate the environment with the required parameters
-    env = make_vec_env(
-        env_id=env_name,
-        n_envs=n_envs,
-        # wrapper_class=wrap,
-        env_kwargs={"env_config": env_config},
-    )
-    env.reset()
-
-    return env
+from scripts.script_utils import build_envs
 
 
 def run_all_main():
@@ -340,7 +314,7 @@ def run_intergroup_alignment():
     """ Runs all experiments used in plots in the main paper.
 
         In particular, we run the five social network topologies on the three tasks for 10 agents. We keep track
-        of diversity and intra-group alignment by activating the study_mnemonic flag
+        of diversity and intra-group alignment by activating the measure_intergroup_alignment flag
 
     """
 

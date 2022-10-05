@@ -22,6 +22,8 @@ from lib.wordcraft.utils.task_utils import recipe_book_info
 from gym.wrappers import FlattenObservation
 from server_scripts.plot import plot_project
 from server_scripts.compute_metrics import compute_metrics_project
+from server_scripts.script_utils import build_envs, find_ntrials
+from lib.wordcraft.utils.task_utils import recipe_book_info
 
 
 def process_mnemonic(model, last_length, process_occurs):
@@ -75,16 +77,18 @@ def eval_model(model, env):
     new_word_logger = []  # contains the unique words created during the episode
     obs = env.reset()
     i = rew = done = 0
+    env_temp = env.envs[0]
     while not done:
         action = model.predict(obs, deterministic=True)
 
         action_logger.append(action[0])
         obs, r, done, info = env.step(action[0])
         rew += r
-        if not len(env.selection):  # composition step
-            _table = np.array(env.table_index)[np.array(env.table_index) != -1]
+
+        if not len(env_temp.selection):  # composition step
+            _table = np.array(env_temp.table_index)[np.array(env_temp.table_index) != -1]
             idx = _table[len(_table) - 1]
-            e = env.recipe_book.entities[idx]
+            e = env_temp.recipe_book.entities[idx]
             if e not in new_word_logger and "base" not in e and "dist" not in e:
                 new_word_logger.append(e)
 
@@ -92,46 +96,15 @@ def eval_model(model, env):
 
         i += 1
 
+    if len(new_word_logger):
+        del new_word_logger[-1]
+    if len(new_word_logger):
+        del action_logger[-1]
+        rew -=r
+    path = [str(el) + "," for el in path]
+    path = ','.join(path)
     return action_logger, new_word_logger, rew, path
 
-
-def build_envs(recipe_path="", log_path=""):
-    """
-    Environment generation tool
-
-    Params
-    ----------
-
-    recipe_path : string, default = ".",
-        path to the recipe book used to generate the environment
-
-    log_path: string, default = ".",
-        path to save tensorboard statistics
-    """
-
-    env_name = "wordcraft-multistep-no-goal-v0"
-    # use gym to generate the environment with the required parameters
-    env = gym.make(
-        env_name,
-        max_depth=8,
-        max_mix_steps=8,
-        num_distractors=0,
-        subgoal_rewards=True,
-        data_path=recipe_path,
-        feature_type="one_hot"
-    )
-
-    # apply wrappers
-    wrapper = SquashWrapper
-    env = wrapper(env, proportional=True)
-    env = FlattenObservation(env)
-
-    env.reset()
-
-    eval_env = copy.deepcopy(env)
-    eval_env.reset()
-
-    return env, eval_env
 
 
 def evaluate_project(project, playground="wordcraft"):
@@ -143,23 +116,36 @@ def evaluate_project(project, playground="wordcraft"):
     project: str
         directory of project
     """
+
     project = project
     config = yaml.safe_load(open(project + "/config.yaml", "r"))
-    if playground == "wordcraft":
-        recipe_path = config["recipe_path"]
-        recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
-        max_rew = recipe_book_info[recipe_name]["best_reward"]
-        n_steps = list(range(0, config["total_episodes"] * 16, 10000))
-        env, _ = build_envs(recipe_path=recipe_book_info[recipe_name]["path"])
+    recipe_book = config["task"]
+    #recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
+
+    env_config = {
+        "seed": None,
+        "recipe_book_path": None,
+        "feature_type": "one_hot",
+        "shuffle_features": False,
+        "random_feature_size": 300,
+        "max_depth": 8,
+        "split": "by_recipe",
+        "train_ratio": 1.0,
+        "num_distractors": 0,
+        "uniform_distractors": False,
+        "max_mix_steps": 8,
+        "subgoal_rewards": True,
+        "proportional": True}
+    env_config["log_path"] = project
+    env_config["data_path"] = recipe_book_info[recipe_book]["path"]
 
 
-    else:
-        env = gym.make(playground, enable_render=False)
-        n_steps = [0,-1]
-        max_rew = 1
+    max_rew = recipe_book_info[recipe_book]["best_reward"]
+    n_steps = list(range(0, config["total_episodes"] * 16, 10000))
+    env = build_envs(env_config)
+
     n_agents = config["n_agents"]
-    n_trials = config["n_trials"]
-
+    n_trials = find_ntrials(project)
 
     # ---- evaluate -----
     total_rewards = []
@@ -212,15 +198,16 @@ def evaluate_project(project, playground="wordcraft"):
                     diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values = \
                         process_mnemonic(model, last_length, process_occurs=config["measure_intergroup_alignment"])
 
-                    total_diversities.append(diversity)
-                    total_group_diversities.append(group_diversity)
-                    total_intragroup_alignment.append(intragroup_alignment)
-
                     total_buffer_keys.extend(buffer_keys)
                     total_buffer_values.extend(buffer_values)
                     occurs_steps.extend([step] * len(buffer_keys))
                     occurs_trials.extend([trial] * len(buffer_keys))
+                else:
+                    diversity = group_diversity = intragroup_alignment = 0
 
+                total_diversities.append(diversity)
+                total_group_diversities.append(group_diversity)
+                total_intragroup_alignment.append(intragroup_alignment)
 
     occurs = {}
 
@@ -269,12 +256,12 @@ def evaluate_project(project, playground="wordcraft"):
     volatilities, conformities = compute_metrics_project(project)
 
     with open(eval_save_dir + "/behavioral_metrics.pkl", "wb") as f:
-        pickle.dump({"volatilities": volatilities, "conformities": conformities}, f)
+        pickle.dump({"volatility": volatilities, "conformity": conformities}, f)
 
     plot_project({"": eval_info}, {"": volatilities}, {"": conformities}, config["measure_mnemonic"], project)
 
 
-def compare_projects(projects, parameter, save_dir):
+def compare_projects(projects, parameter, save_dir, task):
     """  Compares multiple projects whose configuration differs in a desired parameter.
 
     For example, if parameter="shape", we compare different topologies. If paramter="n_agents", we compare different
@@ -300,15 +287,22 @@ def compare_projects(projects, parameter, save_dir):
             eval_info = pickle.load(f)
 
         # find label of project
-        config = yaml.safe_load(open(project + "/config.yaml", "r"))
+        config = yaml.safe_load(open(project + "/trial_0/config.yaml", "r"))
         label = config[parameter]
 
         total_eval_info[label] = eval_info
 
         with open(eval_save_dir + "/behavioral_metrics.pkl", "rb") as f:
             beh_metrics = pickle.load(f)
-        total_volatilities[label] = beh_metrics["volatilities"]
+        total_volatilities[label] = beh_metrics["volatility"]
 
-        total_conformities[label] = beh_metrics["conformities"]
+        total_conformities[label] = beh_metrics["conformity"]
 
-    plot_project(total_eval_info, total_volatilities, total_conformities, config["measure_mnemonic"], save_dir)
+    if "measure_mnemonic" not in config.keys():
+        config["measure_mnemonic"] = False
+
+
+    max_step = recipe_book_info[task]["max_steps"]
+
+    plot_project(total_eval_info, total_volatilities, total_conformities, config["measure_mnemonic"], save_dir,
+                 max_step)

@@ -3,6 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 
+from scripts.script_utils import find_ntrials
 
 def measure_volatility(trajectories, n_trials):
     """ Measure volatility.
@@ -208,8 +209,8 @@ def compute_metrics_project(project):
         directory of project (under SAPIENS)
     """
     config = yaml.safe_load(open(project + "/config.yaml", "r"))
-    n_trials = config["n_trials"]
     n_agents = config["n_agents"]
+    n_trials = find_ntrials(project)
 
     with open(project + "/data/eval_info.pkl", "rb") as f:
         eval_info = pickle.load(f)

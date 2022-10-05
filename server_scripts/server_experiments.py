@@ -19,7 +19,7 @@ from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 import lib.wordcraft
 from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 from sapiens.sapiens import Sapiens
-import server_scripts.evaluate
+from server_scripts.evaluate import evaluate_project
 from lib.stable_baselines3.common.env_util import make_vec_env
 import datetime
 
@@ -156,6 +156,65 @@ def mnemonic_dynamic_merging(trial):
         evaluate_project(project_path)
 
 
+def run_intergroup_alignment(trial):
+    """ Runs all experiments used in plots in the main paper.
+
+        In particular, we run the five social network topologies on the three tasks for 10 agents. We keep track
+        of diversity and intra-group alignment by activating the measure_intergroup_alignment flag
+
+    """
+
+    top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/mnemonic"
+    shapes = ["no-sharing", "fully-connected", "small-world", "ring", "dynamic-Boyd"]
+    n_agents = 10
+
+    gamma = 0.9
+    buffer_size = 5000
+    batch_size = 64
+    num_neurons = 64
+    num_layers = 2
+
+    tasks = {"single_path": 50000, "merging_paths": 50000, "bestoften_paths": 50000}
+
+    for task, total_episodes in tasks.items():
+
+        for shape in shapes:
+
+            project_path = top_dir + "/task_" + task + "/shape_" + shape
+            train_envs = []
+            eval_envs = []
+            for i in range(n_agents):
+
+                env_config["log_path"] = project_path
+                env_config["data_path"] = recipe_book_info[task]["path"]
+                train_env = build_envs(env_config)
+                eval_env = build_envs(env_config)
+
+
+                train_envs.append(train_env)
+                eval_envs.append(eval_env)
+
+            group = Sapiens(gamma=gamma,
+                            buffer_size=buffer_size,
+                            batch_size=batch_size,
+                            num_neurons=num_neurons,
+                            num_layers=num_layers,
+                            n_agents=n_agents,
+                            shape=shape,
+                            train_envs=train_envs,
+                            eval_envs=eval_envs,
+                            project_path=project_path,
+                            total_episodes=total_episodes,
+                            measure_intergroup_alignment=True,
+                            measure_mnemonic=True,
+                            trial=trial)
+            # train
+            group.learn()
+
+            # evaluate
+            evaluate_project(project_path)
+
+
 if __name__ == "__main__":
 
     trial = int(sys.argv[1])
@@ -177,6 +236,6 @@ if __name__ == "__main__":
 
     top_dir = "/gpfsscratch/rech/imi/utw61ti/sapiens_log/projects"
 
-    mnemonic_nosharing_merging(trial) #  intra-group aligment in 6.4.3, as well as all diversity plots
+    run_intergroup_alignment(trial) #  intra-group aligment in 6.4.3, as well as all diversity plots
 
 
