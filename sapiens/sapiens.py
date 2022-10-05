@@ -68,7 +68,7 @@ class Sapiens:
     measure_intergroup_alignmment: bool
         indicates if intergroup alignment will be measured for this project (requires saving replay buffers)
 
-    n_trials: int
+    trial: int
         number of independent trials
 
     buffer_size: int
@@ -112,7 +112,7 @@ class Sapiens:
                  visit_duration: int = 10,
                  measure_mnemonic: bool = False,
                  measure_intergroup_alignment: bool = False,
-                 n_trials: int = 1,
+                 trial: int = 1,
                  buffer_size: int = 5000,
                  batch_size: int = 128,
                  num_neurons: int = 64,
@@ -142,7 +142,7 @@ class Sapiens:
         self.total_episodes = total_episodes
         self.measure_mnemonic = measure_mnemonic
         self.measure_intergroup_alignment = measure_intergroup_alignment
-        self.n_trials = n_trials
+        self.trial = trial
 
         # config related to dynamic topologies
         self.phase_periods = phase_periods
@@ -172,13 +172,12 @@ class Sapiens:
             if not os.path.exists(new_dir):
                 os.makedirs(new_dir)
 
-        for trial in range(self.n_trials):
-            project_dirs = ["/trial_" + str(trial) + "/models", "/trial_" + str(trial) + "/tb_logs",
-                            "/trial_" + str(trial) + "/plots"]
-            for project_dir in project_dirs:
-                new_dir = self.project_path + project_dir
-                if not os.path.exists(new_dir):
-                    os.makedirs(new_dir)
+        project_dirs = ["/trial_" + str(self.trial) + "/models", "/trial_" + str(self.trial) + "/tb_logs",
+                        "/trial_" + str(self.trial) + "/plots"]
+        for project_dir in project_dirs:
+            new_dir = self.project_path + project_dir
+            if not os.path.exists(new_dir):
+                os.makedirs(new_dir)
 
         # save experiment config for reproducibility
         config = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
@@ -302,95 +301,88 @@ class Sapiens:
         """
         self._setup_model()
 
-        #random_data = torch.rand((1, 4, 84, 84))
+        project_path = self.project_path + "/trial_" + str(self.trial)
+        self.init_group(project_path)
 
+        current_episode = self.init_episode
+        total_episodes = self.total_episodes + self.init_episode
+        if current_episode:
+            # if model is loaded train from scratch
+            learning_starts = current_episode
+        else:
+            learning_starts = (self.buffer_size // 100 * 5)
 
-        #result = my_nn(random_data)
+        # ----- training phase -----
+        stop_training = False
 
-        for trial in range(self.n_trials):
+        for i, ENV in enumerate(self.train_envs):
+            self.callbacks[i].on_training_start(locals(), globals())
 
-            project_path = self.project_path + "/trial_" + str(trial)
-            self.init_group(project_path)
+        while (current_episode < total_episodes) and (not stop_training):
 
-            current_episode = self.init_episode
-            total_episodes = self.total_episodes + self.init_episode
-            if current_episode:
-                # if model is loaded train from scratch
-                learning_starts = current_episode
-            else:
-                learning_starts = (self.buffer_size // 100 * 5)
+            start_time = time.time()
+            rollouts = []
+            for i, agent in enumerate(self.agents):
 
-            # ----- training phase -----
-            stop_training = False
+                # ------ log for mnemonic metrics -----
+                if current_episode % self.collect_metrics_period == 0 and self.measure_mnemonic:
+                    diversity = indiv_mnemonic_metrics(agent)
+                    agent.diversities.append(diversity)
 
-            for i, ENV in enumerate(self.train_envs):
-                self.callbacks[i].on_training_start(locals(), globals())
+                    if i == 0:
+                        group_diversity, intragroup_alignment, occurs = group_mnemonic_metrics(self.agents,
+                                                                                               self.measure_intergroup_alignment)
+                    agent.group_diversities.append(group_diversity)
+                    agent.intragroup_alignments.append(intragroup_alignment)
 
-            while (current_episode < total_episodes) and (not stop_training):
+                    if self.measure_intergroup_alignment:
+                        agent.group_occurs.append(occurs)
 
-                start_time = time.time()
-                rollouts = []
-                for i, agent in enumerate(self.agents):
+                # collect experience
+                rollout = agent.collect_rollouts(
+                    agent.env,
+                    train_freq=agent.train_freq,
+                    action_noise=agent.action_noise,
+                    callback=self.callbacks[i],
+                    learning_starts=agent.learning_starts,
+                    replay_buffer=agent.replay_buffer,
+                    log_interval=100)
+                rollouts.append(rollout)
 
-                    # ------ log for mnemonic metrics -----
-                    if current_episode % self.collect_metrics_period == 0 and self.measure_mnemonic:
-                        diversity = indiv_mnemonic_metrics(agent)
-                        agent.diversities.append(diversity)
+                # share experience
+                epsilon = random.uniform(0, 1)
+                if self.sharing and current_episode > learning_starts and epsilon < self.p_s:
+                    agent.share()
 
-                        if i == 0:
-                            group_diversity, intragroup_alignment, occurs = group_mnemonic_metrics(self.agents,
-                                                                                                   self.measure_intergroup_alignment)
-                        agent.group_diversities.append(group_diversity)
-                        agent.intragroup_alignments.append(intragroup_alignment)
+                if rollout.continue_training is False:
+                    stop_training = True
+                    break
 
-                        if self.measure_intergroup_alignment:
-                            agent.group_occurs.append(occurs)
+                # train
+                if current_episode > learning_starts:
+                    gradient_steps = agent.gradient_steps if agent.gradient_steps > 0 else rollouts[
+                        i].episode_timesteps
+                    agent.train(batch_size=self.batch_size, gradient_steps=gradient_steps)
 
-                    # collect experience
-                    rollout = agent.collect_rollouts(
-                        agent.env,
-                        train_freq=agent.train_freq,
-                        action_noise=agent.action_noise,
-                        callback=self.callbacks[i],
-                        learning_starts=agent.learning_starts,
-                        replay_buffer=agent.replay_buffer,
-                        log_interval=100)
-                    rollouts.append(rollout)
+            current_episode += 1
 
-                    # share experience
-                    epsilon = random.uniform(0, 1)
-                    if self.sharing and current_episode > learning_starts and epsilon < self.p_s:
-                        agent.share()
+            # ------- update dynamic topologies ------
+            if self.shape == "dynamic-periodic":
+                self.timer_dynamic += 1
+                if self.timer_dynamic == self.phase_periods[self.phase_idx]:
+                    self.timer_dynamic = 0
+                    self.phase_idx += 1
+                    self.phase_idx = (self.phase_idx % len(self.phases))
+                    self.graph, self.agents = update_topology_periodic()
 
-                    if rollout.continue_training is False:
-                        stop_training = True
-                        break
+            if self.shape == "dynamic-Boyd":
+                self.graph, self.visit, self.agents = update_topology_Boyd(agents=self.agents,
+                                                                           graph=self.graph,
+                                                                           migrate_rate=self.migrate_rate,
+                                                                           visiting=self.visit,
+                                                                           project_path=project_path,
+                                                                           episode=current_episode)
 
-                    # train
-                    if current_episode > learning_starts:
-                        gradient_steps = agent.gradient_steps if agent.gradient_steps > 0 else rollouts[
-                            i].episode_timesteps
-                        agent.train(batch_size=self.batch_size, gradient_steps=gradient_steps)
-
-                current_episode += 1
-
-                # ------- update dynamic topologies ------
-                if self.shape == "dynamic-periodic":
-                    self.timer_dynamic += 1
-                    if self.timer_dynamic == self.phase_periods[self.phase_idx]:
-                        self.timer_dynamic = 0
-                        self.phase_idx += 1
-                        self.phase_idx = (self.phase_idx % len(self.phases))
-                        self.graph, self.agents = update_topology_periodic()
-
-                if self.shape == "dynamic-Boyd":
-                    self.graph, self.visit, self.agents = update_topology_Boyd(agents=self.agents,
-                                                                               graph=self.graph,
-                                                                               migrate_rate=self.migrate_rate,
-                                                                               visiting=self.visit,
-                                                                               project_path=project_path,
-                                                                               episode=current_episode)
-
-                # -----------------------------------------
-            for c in self.callbacks:
-                c.on_training_end()
+            # -----------------------------------------
+        for c in self.callbacks:
+            c.on_training_end()
