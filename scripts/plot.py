@@ -40,7 +40,7 @@ def plot_intergroup_alignment(alignment, save_dir):
     plt.clf()
 
 
-def plot_project(eval_info, volatilities, conformities, measure_mnemonic, project, max_step):
+def plot_project(eval_info, volatilities, conformities, measure_mnemonic, project, max_step=1e10):
     """ Produce all plots related to a project.
 
     eval_info: Dataframe
@@ -54,7 +54,6 @@ def plot_project(eval_info, volatilities, conformities, measure_mnemonic, projec
 
     measure_mnemonic: bool
         indicates whether to plot mnemonic metrics
-
 
     project: str
         project directory

@@ -212,6 +212,15 @@ def evaluate_project(project, playground="wordcraft"):
     occurs = {}
 
     if config["measure_mnemonic"]:
+        print(total_steps)
+        print(np.array(total_rewards) / max_rew)
+        print(total_agents)
+        print(total_trials)
+        print(total_levels)
+        print(total_diversities)
+        print(total_group_diversities)
+        print(total_intragroup_alignment)
+
         eval_info = pd.DataFrame({"train_step": total_steps,
                                   "norm_reward": np.array(total_rewards) / max_rew,
                                   "agent": total_agents,
