@@ -3,7 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 
-from scripts.script_utils import find_ntrials
+from server_scripts.script_utils import find_ntrials
 
 def measure_volatility(trajectories, n_trials):
     """ Measure volatility.
