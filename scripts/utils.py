@@ -1,9 +1,8 @@
 import os
 import sys
-from scripts.evaluate import evaluate_project
 
-#project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
-#sys.path.append(project_path)
+
+
 
 def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, account="jeanzay_id"):
     """
