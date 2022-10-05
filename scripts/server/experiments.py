@@ -3,7 +3,7 @@
 import os
 import sys
 project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
-sys.path.append(project_path)
+sys.path.insert(0,project_path)
 print(sys.path)
 import gym
 import copy
