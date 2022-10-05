@@ -4,7 +4,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 
 
-import server_scripts.experiments
+import server_scripts.server_experiments
 
 
 def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, account="jeanzay_id"):
