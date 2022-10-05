@@ -3,10 +3,6 @@
 import os
 import sys
 project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
-sys.path.insert(0,project_path)
-__file__ = "scripts.evaluate"
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 print(sys.path)
 import gym
 import copy
@@ -16,7 +12,7 @@ from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 import lib.wordcraft
 from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 from sapiens.sapiens import Sapiens
-from evaluate import evaluate_project
+from scripts.evaluate import evaluate_project
 from lib.stable_baselines3.common.env_util import make_vec_env
 import datetime
 

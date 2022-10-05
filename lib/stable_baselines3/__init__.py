@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.insert(0, os.getcwd() + "/lib")
-
+print(sys.path)
 from stable_baselines3.a2c import A2C
 from stable_baselines3.ddpg import DDPG
 from stable_baselines3.dqn import DQN

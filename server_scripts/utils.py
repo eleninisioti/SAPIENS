@@ -1,7 +1,9 @@
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.append(os.getcwd())
+print(os.getcwd())
 
+import server_scripts.experiments
 
 
 def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, account="jeanzay_id"):
@@ -49,6 +51,7 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
         batch_cmd = python_path + " " + script
         fh.writelines(batch_cmd)
 
+    os.chdir(os.getcwd())
     os.system("sbatch %s" % slurmjob_path)
 
 
