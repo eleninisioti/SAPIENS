@@ -187,7 +187,7 @@ def evaluate_project(project, playground="wordcraft"):
 
                     all_levels = [0] + [int(el[(el.rindex("_") + 1):]) for el in unique_words]
                     level = max(all_levels)
-                    total_rewards.append(rewards)
+                    total_rewards.append(float(rewards[0]))
                     total_agents.append(agent)
                     total_trajectories.append(trajectory)
                     total_steps.append(step)
