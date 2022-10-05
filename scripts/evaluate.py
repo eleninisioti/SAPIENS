@@ -134,7 +134,7 @@ def build_envs(recipe_path="", log_path=""):
     return env, eval_env
 
 
-def evaluate_project(project):
+def evaluate_project(project, playground="wordcraft"):
     """
     Evaluates all models under a project and returns dataframes for how different metrics evolve  training time.
 
@@ -145,14 +145,21 @@ def evaluate_project(project):
     """
     project = project
     config = yaml.safe_load(open(project + "/config.yaml", "r"))
-    recipe_path = config["recipe_path"]
-    recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
-    max_rew = recipe_book_info[recipe_name]["best_reward"]
+    if playground == "wordcraft":
+        recipe_path = config["recipe_path"]
+        recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
+        max_rew = recipe_book_info[recipe_name]["best_reward"]
+        n_steps = list(range(0, config["total_episodes"] * 16, 10000))
+        env, _ = build_envs(recipe_path=recipe_book_info[recipe_name]["path"])
+
+
+    else:
+        env = gym.make(playground, enable_render=False)
+        n_steps = [0,-1]
+        max_rew = 1
     n_agents = config["n_agents"]
-    n_steps = list(range(0, config["total_episodes"] * 16, 10000))
     n_trials = config["n_trials"]
 
-    env, _ = build_envs(recipe_path=recipe_book_info[recipe_name]["path"])
 
     # ---- evaluate -----
     total_rewards = []
@@ -176,8 +183,11 @@ def evaluate_project(project):
         for trial in range(n_trials):
 
             for agent in range(n_agents):
+                if step==-1:
+                    path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
+                else:
 
-                path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
+                    path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
 
                 if os.path.exists(path + ".zip"):
                     try:
@@ -213,6 +223,7 @@ def evaluate_project(project):
 
 
     occurs = {}
+
     if config["measure_mnemonic"]:
         eval_info = pd.DataFrame({"train_step": total_steps,
                                   "norm_reward": np.array(total_rewards) / max_rew,

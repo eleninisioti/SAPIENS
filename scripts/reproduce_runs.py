@@ -61,7 +61,7 @@ def run_all_main():
     """
 
     top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/main"
-    shapes = ["small-world", "ring", "dynamic-Boyd", "fully-connected"]
+    shapes = [ "no-sharing", "ring" , "fully-connected" ]
     n_agents = 10
 
     gamma = 0.9
@@ -71,7 +71,8 @@ def run_all_main():
     num_layers = 2
 
     #tasks = {"single_path": 50000, "merging_paths": 500000, "bestoften_paths": 500000}
-    tasks = {"single_path": 50000, "merging_paths": 500000, "bestoften_paths": 500000}
+    #tasks = {"bestoften_paths": 500000}
+    tasks = {"merging_paths": 500000}
 
     for task, total_episodes in tasks.items():
 
@@ -99,7 +100,7 @@ def run_all_main():
                             eval_envs=eval_envs,
                             project_path=project_path,
                             total_episodes=total_episodes,
-                            n_trials=10)
+                            n_trials=2)
             # train
             group.learn()
 

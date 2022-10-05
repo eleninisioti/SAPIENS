@@ -26,7 +26,7 @@ class DQN(OffPolicyAlgorithm):
     :param learning_rate: The learning rate, it can be a function
         of the current progress remaining (from 1 to 0)
     :param buffer_size: size of the replay buffer
-    :param learning_starts: how many steps of the agent to collect transitions for before learning starts
+    :param learning_starts: how many steps of the model to collect transitions for before learning starts
     :param batch_size: Minibatch size for each gradient update
     :param tau: the soft update coefficient ("Polyak update", between 0 and 1) default 1 for hard update
     :param gamma: the discount factor

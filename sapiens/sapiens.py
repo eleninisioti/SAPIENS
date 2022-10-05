@@ -2,13 +2,13 @@ import os
 import time
 import random
 import yaml
-
+import torch
 from lib.stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 from sapiens.es_dqn import DES_DQN
 from lib.stable_baselines3.common.utils import set_random_seed
 from sapiens.utils import group_mnemonic_metrics, indiv_mnemonic_metrics
 from sapiens.topologies import init_topology, update_topology_periodic, update_topology_Boyd
-
+from sapiens.utils import custom_nn
 
 class Sapiens:
     """
@@ -184,7 +184,15 @@ class Sapiens:
         config = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
         del config["train_envs"]
         del config["eval_envs"]
-        config["recipe_path"] = self.train_envs[0].data_path
+        if "wordcraft" in self.train_envs[0].unwrapped.spec.id:
+            config["recipe_path"] = self.train_envs[0].data_path
+            self.eval_freq = 100
+            self.save_freq = 1000
+
+        else:
+
+            self.eval_freq = 100
+            self.save_freq = 50
 
         with open(self.project_path + "/config.yaml", "w") as f:
             yaml.dump(config, f)
@@ -202,19 +210,20 @@ class Sapiens:
         """
         # 1) Every eval_freq timesteps, the model evaluation determines if the model has improved, and saves this model
         eval_callback = EvalCallback(
-            self.eval_envs[agent_idx],
+            eval_env = self.eval_envs[agent_idx],
             log_path=project_path + "/tb_logs",
             best_model_save_path=project_path + "/models",
-            eval_freq=100,
+            eval_freq=self.eval_freq,
             deterministic=True,
             render=False,
+
         )
         # 2) a regular saving point (every save_freq timesteps) is also made to measure improvement throughout training
         c_callback = CheckpointCallback(
-            save_freq=10000, save_path=project_path + "/models",
+            save_freq=self.save_freq, save_path=project_path + "/models",
             name_prefix=f"agent_{agent_idx}"
         )
-        callbacks = [eval_callback, c_callback]
+        callbacks = [ c_callback]
         return callbacks
 
     def init_group(self, project_path: str):
@@ -226,7 +235,11 @@ class Sapiens:
                                        n_subgroups=self.n_subgroups, n_neighbors=self.n_neighbors)
 
         # NN architecture
-        policy_kwargs = dict(net_arch=[self.num_neurons] * self.num_layers)
+        if "gvgai" in self.train_envs[0].unwrapped.spec.id:
+            policy_kwargs = custom_nn()
+            self.policy = "CnnPolicy"
+        else:
+            policy_kwargs = dict(net_arch=[self.num_neurons] * self.num_layers)
 
         # ----- for each agent: 1) check if we want to reload or train from scratch 3) initialize 4) update neighbors
         agents = []
@@ -288,6 +301,11 @@ class Sapiens:
         trains.
         """
         self._setup_model()
+
+        #random_data = torch.rand((1, 4, 84, 84))
+
+
+        #result = my_nn(random_data)
 
         for trial in range(self.n_trials):
 

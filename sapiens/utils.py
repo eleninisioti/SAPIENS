@@ -5,10 +5,71 @@ import logging
 import matplotlib.pyplot as plt
 from scipy.special import rel_entr
 import numpy as np
-
+import torch.nn as nn
+import torch
+import gym
+import torch as th
+from lib.stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+import torch.nn.functional as F
 # ----- information about recipe books ----
+class Net(nn.Module):
+    def __init__(self, n_input_channels):
+        # We assume CxHxW images (channels first)
+        # Re-ordering will be done by pre-preprocessing or wrapper
+        super(Net, self).__init__()
+
+        self.conv1 = nn.Conv2d(n_input_channels, 32, 8, 4)
+        # Second 2D convolutional layer, taking in the 32 input layers,
+        # outputting 64 convolutional features, with a square kernel size of 3
+        self.conv2 = nn.Conv2d(32, 64, 4, 2)
+        self.conv3 = nn.Conv2d(64, 64, 3, 1)
 
 
+        # First fully connected layer
+        #self.fc1 = nn.Linear(3136, 512)
+        self.fc1 = nn.Linear(3840, 512)
+        # Second fully connected layer that outputs our 10 labels
+        #self.fc2 = nn.Linear(512, 5)
+
+    def forward(self, x):
+        # Pass data through conv1
+        x = self.conv1(x)
+        # Use the rectified-linear activation function over x
+        x = F.relu(x)
+
+        x = self.conv2(x)
+        x = F.relu(x)
+
+        x = self.conv3(x)
+        x = F.relu(x)
+
+
+        x = torch.flatten(x, 1)
+        # Pass data through fc1
+        x = self.fc1(x)
+        x = F.relu(x)
+        #x = self.fc2(x)
+
+        # Apply softmax to x
+        #output = F.log_softmax(x, dim=1)
+        return x
+
+def custom_nn():
+    class CustomCNN(BaseFeaturesExtractor):
+        def __init__(self, observation_space: gym.spaces.Box, features_dim: int = 256):
+            super(CustomCNN, self).__init__(observation_space, features_dim)
+            # We assume CxHxW images (channels first)
+            # Re-ordering will be done by pre-preprocessing or wrapper
+            n_input_channels = observation_space.shape[0]
+            self.my_nn = Net(n_input_channels)
+
+
+        def forward(self, x):
+            return self.my_nn(x / 255.0)
+
+    policy_kwargs = dict(features_extractor_class=CustomCNN,
+                     features_extractor_kwargs=dict(features_dim=512))
+    return policy_kwargs
 
 def indiv_mnemonic_metrics(agent):
     """ Computes mnemonic metrics for a single agent.
