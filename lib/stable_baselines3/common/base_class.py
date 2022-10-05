@@ -153,7 +153,7 @@ class BaseAlgorithm(ABC):
                     self.eval_env = maybe_make_env(env, self.verbose)
 
             env = maybe_make_env(env, self.verbose)
-            #env = self._wrap_env(env, self.verbose, monitor_wrapper)
+            env = self._wrap_env(env, self.verbose, monitor_wrapper)
 
             self.observation_space = env.observation_space
             self.action_space = env.action_space
@@ -675,6 +675,7 @@ class BaseAlgorithm(ABC):
             attr = recursive_getattr(self, name)
             # Retrieve state dict
             params[name] = attr.state_dict()
+            print(name)
         return params
 
     def save(
@@ -726,5 +727,5 @@ class BaseAlgorithm(ABC):
 
         # Build dict of state_dicts
         params_to_save = self.get_parameters()
-
+        #print(params_to_save)
         save_to_zip_file(path, data=data, params=params_to_save, pytorch_variables=pytorch_variables)

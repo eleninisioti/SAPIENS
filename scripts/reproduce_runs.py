@@ -351,7 +351,6 @@ def run_intergroup_alignment():
     num_neurons = 64
     num_layers = 2
 
-
     tasks = {"single_path": 50000, "merging_paths": 50000, "bestoften_paths": 50000}
 
     for task, total_episodes in tasks.items():
@@ -407,6 +406,8 @@ if __name__ == "__main__":
         "max_mix_steps": 8,
         "subgoal_rewards": True,
         "proportional": True}
+
+    top_dir = "projects"
 
     # reproduce experiments analysed in the main paper
     run_all_main()
