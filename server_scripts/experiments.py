@@ -5,6 +5,7 @@ project_path = "/gpfsscratch/rech/imi/utw61ti/workspace/SAPIENS"
 sys.path.append(project_path)
 project_path = "/gpfsssd/scratch/rech/imi/utw61ti/workspace/SAPIENS"
 sys.path.append(project_path)
+import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 
 
