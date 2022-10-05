@@ -183,7 +183,7 @@ class Sapiens:
         config = {key: value for key, value in self.__dict__.items() if not key.startswith('__') and not callable(key)}
         del config["train_envs"]
         del config["eval_envs"]
-        config["recipe_path"] = self.train_envs[0].data_path
+        config["recipe_path"] = self.train_envs[0].env_config["data_path"]
         self.eval_freq = 100
         self.save_freq = 10000
 
