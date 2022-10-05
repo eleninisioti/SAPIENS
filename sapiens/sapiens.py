@@ -223,7 +223,7 @@ class Sapiens:
             save_freq=self.save_freq, save_path=project_path + "/models",
             name_prefix=f"agent_{agent_idx}"
         )
-        callbacks = [ c_callback]
+        callbacks = [c_callback]
         return callbacks
 
     def init_group(self, project_path: str):

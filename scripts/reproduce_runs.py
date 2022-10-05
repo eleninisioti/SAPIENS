@@ -11,9 +11,10 @@ import lib.wordcraft
 from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 from sapiens.sapiens import Sapiens
 from scripts.evaluate import evaluate_project
+from lib.stable_baselines3.common.env_util import make_vec_env
 
 
-def build_envs(recipe_path="", log_path=""):
+def build_envs(env_config, n_envs=1):
     """
     Environment generation tool
 
@@ -26,30 +27,17 @@ def build_envs(recipe_path="", log_path=""):
     log_path: string, default = ".",
         path to save tensorboard statistics
     """
-
     env_name = "wordcraft-multistep-no-goal-v0"
     # use gym to generate the environment with the required parameters
-    env = gym.make(
-        env_name,
-        max_depth=8,
-        max_mix_steps=8,
-        num_distractors=0,
-        subgoal_rewards=True,
-        data_path=recipe_path,
-        feature_type="one_hot"
+    env = make_vec_env(
+        env_id=env_name,
+        n_envs=n_envs,
+        # wrapper_class=wrap,
+        env_kwargs={"env_config": env_config},
     )
-
-    # apply wrappers
-    wrapper = SquashWrapper
-    env = wrapper(env, proportional=True)
-    env = FlattenObservation(env)
-
     env.reset()
 
-    eval_env = copy.deepcopy(env)
-    eval_env.reset()
-
-    return env, eval_env
+    return env
 
 
 def run_all_main():
@@ -59,6 +47,7 @@ def run_all_main():
     of mnemonic metrics (doing so requires a lot of additional memory).
 
     """
+
 
     top_dir = "/media/elena/LaCie/SAPIENS/projects/paper/main"
     shapes = [ "no-sharing", "ring" , "fully-connected" ]
@@ -82,10 +71,11 @@ def run_all_main():
             train_envs = []
             eval_envs = []
             for i in range(n_agents):
-                train_env, eval_env = build_envs(
-                    recipe_path=recipe_book_info[task]["path"],
-                    log_path=project_path + "/tb_logs"
-                )
+                env_config["log_path"] = project_path
+                env_config["data_path"] = recipe_book_info[task]["path"]
+                train_env = build_envs(env_config)
+                eval_env = build_envs(env_config)
+
                 train_envs.append(train_env)
                 eval_envs.append(eval_env)
 
@@ -139,10 +129,11 @@ def run_scaling():
                 train_envs = []
                 eval_envs = []
                 for i in range(n_agents):
-                    train_env, eval_env = build_envs(
-                        recipe_path=recipe_book_info[task]["path"],
-                        log_path=project_path + "/tb_logs"
-                    )
+                    env_config["log_path"] = project_path
+                    env_config["data_path"] = recipe_book_info[task]["path"]
+                    train_env = build_envs(env_config)
+                    eval_env = build_envs(env_config)
+
                     train_envs.append(train_env)
                     eval_envs.append(eval_env)
 
@@ -202,10 +193,11 @@ def run_varying_dynamic_topologies():
                 train_envs = []
                 eval_envs = []
                 for i in range(n_agents):
-                    train_env, eval_env = build_envs(
-                        recipe_path=recipe_book_info[task]["path"],
-                        log_path=project_path + "/tb_logs"
-                    )
+                    env_config["log_path"] = project_path
+                    env_config["data_path"] = recipe_book_info[task]["path"]
+                    train_env = build_envs(env_config)
+                    eval_env = build_envs(env_config)
+
                     train_envs.append(train_env)
                     eval_envs.append(eval_env)
 
@@ -255,10 +247,12 @@ def run_varying_dynamic_topologies():
                 train_envs = []
                 eval_envs = []
                 for i in range(n_agents):
-                    train_env, eval_env = build_envs(
-                        recipe_path=recipe_book_info[task]["path"],
-                        log_path=project_path + "/tb_logs"
-                    )
+
+                    env_config["log_path"] = project_path
+                    env_config["data_path"] = recipe_book_info[task]["path"]
+                    train_env = build_envs(env_config)
+                    eval_env = build_envs(env_config)
+
                     train_envs.append(train_env)
                     eval_envs.append(eval_env)
 
@@ -311,10 +305,12 @@ def run_mnemonic():
             train_envs = []
             eval_envs = []
             for i in range(n_agents):
-                train_env, eval_env = build_envs(
-                    recipe_path=recipe_book_info[task]["path"],
-                    log_path=project_path + "/tb_logs"
-                )
+
+                env_config["log_path"] = project_path
+                env_config["data_path"] = recipe_book_info[task]["path"]
+                train_env = build_envs(env_config)
+                eval_env = build_envs(env_config)
+
                 train_envs.append(train_env)
                 eval_envs.append(eval_env)
 
@@ -366,10 +362,13 @@ def run_intergroup_alignment():
             train_envs = []
             eval_envs = []
             for i in range(n_agents):
-                train_env, eval_env = build_envs(
-                    recipe_path=recipe_book_info[task]["path"],
-                    log_path=project_path + "/tb_logs"
-                )
+
+                env_config["log_path"] = project_path
+                env_config["data_path"] = recipe_book_info[task]["path"]
+                train_env = build_envs(env_config)
+                eval_env = build_envs(env_config)
+
+
                 train_envs.append(train_env)
                 eval_envs.append(eval_env)
 
@@ -394,10 +393,25 @@ def run_intergroup_alignment():
 
 if __name__ == "__main__":
 
+    env_config = {
+        "seed": None,
+        "recipe_book_path": None,
+        "feature_type": "one_hot",
+        "shuffle_features": False,
+        "random_feature_size": 300,
+        "max_depth": 8,
+        "split": "by_recipe",
+        "train_ratio": 1.0,
+        "num_distractors": 0,
+        "uniform_distractors": False,
+        "max_mix_steps": 8,
+        "subgoal_rewards": True,
+        "proportional": True}
+
     # reproduce experiments analysed in the main paper
     run_all_main()
 
-    # ----- experiments in appendices below -----
+    # ----- experiments in appendices follow  -----
     run_scaling() # group size effect in 6.4.4
 
     run_varying_dynamic_topologies() # varying dynamic topologies in 6.4.5

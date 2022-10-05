@@ -7,4 +7,4 @@ dependencies:
   - matplotlib
   - pandas==1.2.2
   - seaborn
-
+  - gym==0.18.0

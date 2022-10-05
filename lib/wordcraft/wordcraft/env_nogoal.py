@@ -4,11 +4,12 @@ from enum import IntEnum
 import numpy as np
 import gym
 from gym.utils import seeding
-import re
+# import re
 
+# from lib.wordcraft.utils import seed as utils_seed
 from lib.wordcraft.utils.word2feature import FeatureMap
 from lib.wordcraft.wordcraft.recipe_book import Recipe, RecipeBook
-
+# from gym.spaces import MultiDiscrete, Dict, Discrete
 
 NO_RECIPE_PENALTY = 0
 IRRELEVANT_RECIPE_PENALTY = 0
@@ -23,79 +24,60 @@ class WordCraftEnvNoGoal(gym.Env):
     At a high level, the state consists of a goal, the inventory, and the current selection.
     """
 
-    def __init__(
-        self,
-        data_path="datasets/alchemy2.json",
-        recipe_book_path=None,
-        feature_type="glove",
-        shuffle_features=False,
-        random_feature_size=300,
-        max_depth=1,
-        split="by_recipe",
-        train_ratio=1.0,
-        num_distractors=0,
-        uniform_distractors=False,
-        max_mix_steps=1,
-        subgoal_rewards=True,
-        seed=None,
-    ):
+    def __init__(self,env_config):
         super().__init__()
 
         self.eval_mode = False
 
-        if seed is None:
-            seed = int.from_bytes(os.urandom(4), byteorder="little")
-        self.set_seed(seed)
-        #utils_seed(seed)
+        if env_config["seed"] is None:
+            env_config["seed"] = int.from_bytes(os.urandom(4), byteorder="little")
+        self.set_seed(env_config["seed"])
+        # utils_seed(seed)
 
-        if recipe_book_path is not None:
-            self.recipe_book = RecipeBook.load(recipe_book_path)
-            self.recipe_book.set_seed(seed)
-            max_depth = self.recipe_book.max_depth
+        if env_config["recipe_book_path"] is not None:
+            self.recipe_book = RecipeBook.load(env_config["recipe_book_path"])
+            self.recipe_book.set_seed(env_config["seed"])
+            env_config["max_depth"] = self.recipe_book.max_depth
         else:
             self.recipe_book = RecipeBook(
-                data_path=data_path,
-                max_depth=max_depth,
-                split=split,
-                train_ratio=train_ratio,
-                seed=seed,
+                data_path=env_config["data_path"],
+                max_depth=env_config["max_depth"],
+                split=env_config["split"],
+                train_ratio=env_config["train_ratio"],
+                seed=env_config["seed"],
             )
 
         self.feature_map = FeatureMap(
             words=self.recipe_book.entities,
-            feature_type=feature_type,
-            random_feature_size=random_feature_size,
-            shuffle=shuffle_features,
-            seed=seed,
+            feature_type=env_config["feature_type"],
+            random_feature_size=env_config["random_feature_size"],
+            shuffle=env_config["shuffle_features"],
+            seed=env_config["seed"],
         )
 
         self.max_selection_size = self.recipe_book.max_recipe_size
-        self.max_mix_steps = max(max_mix_steps or max_depth, max_depth)
+        self.max_mix_steps = max(env_config["max_mix_steps"] or env_config["max_depth"], env_config["max_depth"])
         self.max_steps = self.max_selection_size * self.max_mix_steps
 
-        self.sample_depth = max_depth
+        self.sample_depth = env_config["max_depth"]
 
-        self.subgoal_rewards = subgoal_rewards
-        self.max_depth = max_depth
-        self.num_distractors = num_distractors
-        self.uniform_distractors = uniform_distractors
-        if self.num_distractors:
-            self.distractors = np.random.choice(
-                self.recipe_book.distractors, self.num_distractors
-            )
-        else:
-            self.distractors = []
+        self.subgoal_rewards = env_config["subgoal_rewards"]
+        self.max_depth = env_config["max_depth"]
+        self.num_distractors = env_config["num_distractors"]
+        self.uniform_distractors = env_config["uniform_distractors"]
+        # self.distractors = []
+        self.distractors = np.random.choice(
+            self.recipe_book.distractors, self.num_distractors
+        )
         self.orig_table = [
             entity
             for entity in self.recipe_book.entity2level
             if self.recipe_book.entity2level[entity] == 0
             and entity not in self.recipe_book.distractors
         ]
-
-        # I think this assumes 2 base elements
         self.max_table_size = (
-                2 ** max_depth + num_distractors + self.max_mix_steps + len(self.orig_table)-2
-        )
+            2 ** env_config["max_depth"] + env_config["num_distractors"] + self.max_mix_steps + 4
+        )  # + 4 is to go from 2 base elements to 6 (3 per branch)
 
         self.task = None
 
@@ -110,32 +92,36 @@ class WordCraftEnvNoGoal(gym.Env):
         self.episode_reward = 0
         self.done = False
 
-        self.data_path = data_path
-
-        obs = self.reset()
         num_entities = len(self.recipe_book.entities)
+        # dspaces = {
+        #     "table_index": gym.spaces.MultiDiscrete(
+        #         self.max_table_size * [num_entities]
+        #     ),
+        #     "table_features": gym.spaces.Box(
+        #         shape=self.table_features.shape, low=-1.0, high=1.0
+        #     ),
+        #     "selection_index": gym.spaces.MultiDiscrete(
+        #         self.max_selection_size * [num_entities]
+        #     ),
+        #     "selection_features": gym.spaces.Box(
+        #         shape=self.selection_features.shape, low=-1.0, high=1.0
+        #     ),
+        # }
+        # self.observation_space = gym.spaces.Dict(dspaces)
+        self.action_space = gym.spaces.Discrete(num_entities)  # Actions correspond to choosing an entity in a table position
+
+        ### inserting squash wrapper here
         dspaces = {
-            "table_index": gym.spaces.MultiDiscrete(
-                self.max_table_size * [num_entities]
-            ),
-            "table_features": gym.spaces.Box(
-                shape=self.table_features.shape, low=-1.0, high=1.0
-            ),
-            "selection_index": gym.spaces.MultiDiscrete(
-                self.max_selection_size * [num_entities]
-            ),
-            "selection_features": gym.spaces.Box(
-                shape=self.selection_features.shape, low=-1.0, high=1.0
-            ),
+            "table_features": gym.spaces.MultiDiscrete(num_entities * [num_entities]),
+            "selection_features": gym.spaces.MultiDiscrete(num_entities * [num_entities]),
         }
-        self.observation_space = gym.spaces.Dict(dspaces)
-        self.action_space = gym.spaces.Discrete(
-            self.max_table_size
-        )  # Actions correspond to choosing an entity in a table position
+        self.initial_observation_space = gym.spaces.Dict(dspaces)
+        self.proportional = env_config["proportional"]
         self.discovered = []
 
-        self.debug = {"actions": []}
-
+        ### inserting flatten observations wrapper here
+        self.observation_space = gym.spaces.flatten_space(self.initial_observation_space)        
+        self.reset()
 
 
     def reset(self):
@@ -145,19 +131,14 @@ class WordCraftEnvNoGoal(gym.Env):
         self.episode_reward = 0
         self.done = False
 
-        # self.task = self.recipe_book.sample_task(depth=self.sample_depth)
-        # self.distractors = self.recipe_book.sample_distractors(
-        #     self.task, self.num_distractors, uniform=self.uniform_distractors
-        # )
-        # self.goal_features = self.feature_map.feature(self.task.goal)
-        # self.distractors = np.random.choice(
-        #     self.recipe_book.distractors, self.num_distractors
-        # )
         self._reset_selection()
         self._reset_table()
         self._reset_history()
 
-        return self._get_observation()
+        ### inserting squash wrapper here
+        original_first_state = self._get_observation()
+        first_state = self.smaller_obs(original_first_state)
+        return gym.spaces.flatten(self.initial_observation_space, first_state)
 
     def eval(self, split="test"):
         self.eval_mode = True
@@ -173,7 +154,8 @@ class WordCraftEnvNoGoal(gym.Env):
     def sample_depth(self, depth):
         self.sample_depth = depth
 
-
+    def __max_table_size_for_depth(self, depth):
+        return 2 ** depth - 1
 
     def _reset_table(self):
 
@@ -199,11 +181,9 @@ class WordCraftEnvNoGoal(gym.Env):
         self.table_index[:num_start_items] = np.array(
             [self.recipe_book.entity2index[e] for e in self.table], dtype=int
         )
-        # if self.task:
         self.table_features[:num_start_items, :] = np.array(
             [self.feature_map.feature(e) for e in self.table]
         )
-
 
     def _reset_selection(self):
         self.selection = []
@@ -221,32 +201,14 @@ class WordCraftEnvNoGoal(gym.Env):
         since torchbeast stores actions in a shared_memory tensor shared among actor processes
         """
         return {
-            # "goal_index": [self.recipe_book.entity2index[self.task.goal]],
-            # "goal_features": self.goal_features,
             "table_index": self.table_index,
             "table_features": self.table_features,
             "selection_index": self.selection_index,
             "selection_features": self.selection_features,
         }
+        
 
-    # def systematic_proportional_reward(self, action):
-    #     # Detect reward :
-    #     if len(self.selection) == self.max_selection_size - 1:
-    #         # check depth of created entity
-    #         i = self.table_index[action]
-    #         e = self.recipe_book.entities[i]
-    #         recipe = Recipe(np.concatenate((self.selection, [e])))
-    #         word = self.recipe_book.evaluate_recipe(recipe)
-    #         if word is not None and word not in self.discovered:
-    #             # TODO : apply modifier depending on depth
-    #             self.discovered.append(word)
-    #             _num = [int(s) for s in re.findall(r"\d+", word)]
-    #             reward = self.recipe_book.entity2level[word] + 1
-    #             return reward
-    #     return 0
-
-    def step(self, action):
-        #print(action)
+    def unsquashed_step(self, action):
         reward = 0
         if self.done:  # no-op if env is done
             return self._get_observation(), reward, self.done, {}
@@ -275,18 +237,10 @@ class WordCraftEnvNoGoal(gym.Env):
             # Evaluate selection
             recipe = Recipe(self.selection)
             result = self.recipe_book.evaluate_recipe(recipe)
-            # if result == self.task.goal: # TODO : should I add stopping ?
-            #     self.done = True
-            # print(action, self.selection, result)
-            if result != None and result not in self.discovered:
 
+            if result != None and result not in self.discovered:
                 reward = self.recipe_book.entity2level[result]
-                #print(result)
-                #print("reward is", reward)
                 self.discovered.append(result)
-            # elif result in self.task.intermediate_entities:
-            #     if result not in self.subgoal_history:
-            #         self.subgoal_history.add(result)
 
             self.episode_reward += reward
 
@@ -310,6 +264,39 @@ class WordCraftEnvNoGoal(gym.Env):
         obs = self._get_observation()
 
         return obs, reward, self.done, {}
+
+    def step(self, action):
+        ### inserting squash wrapper here
+        # we use table position as actions, and here translate it to actual recipe_book indexes
+        # if multiple actions are selected, only the first is used
+        itemindex = np.where(self.table_index == action)[0]
+
+        # Dealing with the case where the agent choses an entity that is not available at this step
+        # by making it chose the first unavailable slot
+        n_available_objects = len([a for a in self.table_index if a >= 0])
+        if len(itemindex) == 0:
+            itemindex = min(n_available_objects, self.action_space.n)  
+        
+        # Dealing with the case where multiple instances of the chosen entity are available
+        else:
+            itemindex = np.min(itemindex)  # take the first instance of the object
+
+        # Running the original environment step
+        orig_next_obs, reward, done, info = self.unsquashed_step(itemindex)
+        next_obs = self.smaller_obs(orig_next_obs)
+
+        # flatten observation
+        obs = gym.spaces.flatten(self.initial_observation_space, next_obs)
+
+        return obs, reward, done, info
+    def smaller_obs(self, obs):
+        small_obs = {}
+        ## Observation wrapping
+        small_obs["table_features"] = np.sum(obs["table_features"], axis=0).astype(int)
+        small_obs["selection_features"] = np.sum(
+            obs["selection_features"], axis=0
+        ).astype(int)
+        return small_obs
 
     def _display_ascii(self, mode="human"):
         """
