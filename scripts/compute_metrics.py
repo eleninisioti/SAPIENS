@@ -7,17 +7,12 @@ from scripts.script_utils import find_ntrials
 
 def measure_volatility(trajectories, n_trials):
     """ Measure volatility.
-
     Volatility is the cumulative number of switches in the policy followed by an agent during consecutive evaluation
     episodes.
-
     trajectories: Dataframe
         contains infromation collected during the evaluation of the project
-
     n_trials: int
         number of trials for this project
-
-
     Returns information in two formats: a list for saving as a yaml file and a dataframe for plotting
     """
     n_agents = max(trajectories["agent"]) + 1
@@ -35,10 +30,8 @@ def measure_volatility(trajectories, n_trials):
             switches = [0]
 
             for idx, step in enumerate(steps[1:]):
-                current_traj = agent_traj.loc[agent_traj["train_step"] == step]
-                prev_traj = agent_traj.loc[agent_traj["train_step"] == steps[idx]]
-                current_traj = list(current_traj["trajectory"])[0]
-                prev_traj = list(prev_traj["trajectory"])[0]
+                current_traj = agent_traj.loc[agent_traj["train_step"] == step]["trajectory"].tolist()[0].split(",")
+                prev_traj = agent_traj.loc[agent_traj["train_step"] == steps[idx]]["trajectory"].tolist()[0].split(",")
                 transition = pd.DataFrame({"after": current_traj, "before": prev_traj})
                 diffs = list(np.where(transition["after"] != transition["before"], 1, 0))
                 switches.append(switches[-1] + np.prod(diffs))
@@ -59,23 +52,17 @@ def measure_volatility(trajectories, n_trials):
 
 def measure_conformity(trajectories, n_trials, n_agents):
     """ Measures conformity.
-
     Conformity is a behavioral metric that measures the percentage of agents following the same trajectory during the
     same evaluation trial.
-
     Params
     ------
     trajectories: Dataframe
         contains infromation collected during the evaluation of the project
-
     n_trials: int
         number of trials for this project
-
     n_agents: int
         number of agents
-
     Returns information in two formats: a list for saving as a yaml file and a dataframe for plotting
-
     """
     conformity = []
     df_conformity = {"train_step": [], "group_conformity": [], "trial": []}
@@ -114,16 +101,12 @@ def measure_conformity(trajectories, n_trials, n_agents):
 
 def compute_performance_metrics(eval_info, n_trials, n_agents):
     """ Compute performance-based metrics.
-
-
     Params
     ------
     eval_info: Dataframe
         contains infromation collected during the evaluation of the project
-
     n_trials: int
         number of trials for this project
-
     n_agents: int
         number of agents
     """
@@ -180,15 +163,12 @@ def compute_performance_metrics(eval_info, n_trials, n_agents):
 
 def compute_behavioral_metrics(eval_info, n_trials, n_agents):
     """ Compute behavioral metrics
-
     Params
     ------
     eval_info: Dataframe
         contains infromation collected during the evaluation of the project
-
     n_trials: int
         number of trials for this project
-
     n_agents: int
         number of agents
     """
@@ -202,7 +182,6 @@ def compute_behavioral_metrics(eval_info, n_trials, n_agents):
 
 def compute_metrics_project(project):
     """ Compute all metrics for project
-
     Params
     ------
     project: str
@@ -243,12 +222,10 @@ def compute_metrics_project(project):
 
 def measure_intergroup_alignment(projects):
     """ Measure intergroup alignment.
-
     Params
     ------
     projects: list of str
         directories of projects for comparing alignment
-
     """
     total_occurs = {}
     for project in projects:

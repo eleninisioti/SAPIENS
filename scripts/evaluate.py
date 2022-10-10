@@ -28,15 +28,12 @@ from lib.wordcraft.utils.task_utils import recipe_book_info
 
 def process_mnemonic(model, last_length, process_occurs):
     """ Process mnemonic metrics of model
-
     Params
     ------
     model: instance of ES_DQN
         the trained model
-
     last_length: int
         last processed timestep
-
     process_occurs: bool
         if True, proccess occurences for computing inter-group alignment
     """
@@ -62,13 +59,10 @@ def process_mnemonic(model, last_length, process_occurs):
 def eval_model(model, env):
     """
     A model is evaluated for a single episode
-
-
     Parameters
     ----------
     model: ES_DQN
         trained model
-
     env: WordcraftEnv
         a gym environment
     """
@@ -109,7 +103,6 @@ def eval_model(model, env):
 def evaluate_project(project, playground="wordcraft"):
     """
     Evaluates all models under a project and returns dataframes for how different metrics evolve  training time.
-
     Parameters
     ---------
     project: str
@@ -198,14 +191,7 @@ def evaluate_project(project, playground="wordcraft"):
     occurs = {}
 
     if config["measure_mnemonic"]:
-        print(total_steps)
-        print(np.array(total_rewards) / max_rew)
-        print(total_agents)
-        print(total_trials)
-        print(total_levels)
-        print(total_diversities)
-        print(total_group_diversities)
-        print(total_intragroup_alignment)
+
 
         eval_info = pd.DataFrame({"train_step": total_steps,
                                   "norm_reward": np.array(total_rewards) / max_rew,
@@ -258,18 +244,14 @@ def evaluate_project(project, playground="wordcraft"):
 
 def compare_projects(projects, parameter, save_dir, task):
     """  Compares multiple projects whose configuration differs in a desired parameter.
-
     For example, if parameter="shape", we compare different topologies. If paramter="n_agents", we compare different
     group sizes. As comparisons, we produce plots of all performance metrics.
-
     Params
     ------
     projects: list of str
         project directories
-
     parameter: str
         name of parameter for comparison
-
     """
     total_eval_info = {}
     total_volatilities = {}
