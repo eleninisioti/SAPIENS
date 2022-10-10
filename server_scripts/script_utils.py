@@ -8,30 +8,30 @@ metric_labels = {"norm_reward": "Reward, $R_t$",
                  "level": "Level, $L_t$",
                  "group_diversity": "Group divesrity, $D^{\\mathcal{G}}_t$",
                  "intragroup_alignment": "Intra-group alignment, $A^{\mathcal{G}}_t$",
-                 "group_conformity": "Conformity, $C_t$",
-"conformities": "Conformity, $C_t$",
+                 "conformity": "Conformity, $C_t$",
+                 "conformities": "Conformity, $C_t$",
                  "volatility": "Average Volatility, $\\bar{V}_t$",
                  "volatilities": "Average Volatility, $\\bar{V}_t$",
-}
+                 }
 
 metric_labels_avg = {"norm_reward": "Average Reward, $R^+_t$",
                      "diversity": "Average Diversity, $\\bar{D}_t$",
                      "level": "Average Level, $\\bar{L}_t$",
-"conformities": "Conformity, $C_t$",
-
+                     "conformity": "Conformity, $C_t$",
                      "volatility": "Average Volatility, $\\bar{V}_t$",
-                    "volatilities": "Average Volatility, $\\bar{V}_t$"
-}
+                     "volatilities": "Average Volatility, $\\bar{V}_t$"
+                     }
 
 metric_labels_max = {"norm_reward": "Maximum Reward, $R^*_t$",
                      "diversity": "Maximum Diversity, $\\hat{D}_t$",
                      "level": "Maximum Level, $\\hat{L}_t$",
                      "volatility": "Maximum Volatility, $\\hat{V}_t$",
-"conformities": "Conformity, $C_t$",
+                     "conformity": "Conformity, $C_t$",
 
                      "volatilities": "Maximum Volatility, $\\hat{V}_t$"
 
                      }
+
 
 def find_ntrials(top_dir):
     trial_dirs = [os.path.join(top_dir, o) for o in os.listdir(top_dir) if "trial" in o]
@@ -62,4 +62,3 @@ def build_envs(env_config, n_envs=1):
     env.reset()
 
     return env
-

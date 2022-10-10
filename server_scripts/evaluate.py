@@ -142,9 +142,12 @@ def evaluate_project(project, playground="wordcraft"):
 
     max_rew = recipe_book_info[recipe_book]["best_reward"]
     n_steps = list(range(0, config["total_episodes"] * 16, 10000))
+    n_steps = list(range(0,65000, 30000))
+
     env = build_envs(env_config)
 
     n_agents = config["n_agents"]
+    n_agents = 1
     n_trials = find_ntrials(project)
 
     # ---- evaluate -----
