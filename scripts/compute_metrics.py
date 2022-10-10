@@ -65,7 +65,7 @@ def measure_conformity(trajectories, n_trials, n_agents):
     Returns information in two formats: a list for saving as a yaml file and a dataframe for plotting
     """
     conformity = []
-    df_conformity = {"train_step": [], "group_conformity": [], "trial": []}
+    df_conformity = {"train_step": [], "conformity": [], "trial": []}
 
     for trial in range(n_trials):
         agent_final_states = []
@@ -89,7 +89,7 @@ def measure_conformity(trajectories, n_trials, n_agents):
             current_conformity = 1 - ((len(current_step) - 1) / n_agents)
             trial_conformities.append(current_conformity)
             df_conformity["train_step"].append(step)
-            df_conformity["group_conformity"].append(current_conformity)
+            df_conformity["conformity"].append(current_conformity)
             df_conformity["trial"].append(trial)
 
         conformity.append(np.mean(trial_conformities))
