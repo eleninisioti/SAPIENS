@@ -34,13 +34,13 @@ Under [notebooks](notebooks) there is a Jupyter notebook that will guide you thr
 
 ### Reproducing the paper results
 
-Scripts under the [scripts](scripts) directory are useful for this:
+Scripts under the [scripts](scripts) directory are useful for reproducing results and figures appearing in the paper.
 
 With [scripts/reproduce_runs.py](scripts/reproduce_runs.py) you can run all simulations presented in the paper from scratch.
 
 This file is useful for looking at how the experiments were configured but better avoid running it: simulations will run locally and sequentially and will take months to complete.
 
-Instead, you can access the output of our simulations on this [online repo](https://drive.google.com/drive/folders/1x6NZe2Aw3udhDNi-V0ljgFs_uFPPzK7l?usp=sharing). Due to space limitation we do not include all checkpoint models, but the log files produced by processing the checkpoint models.
+Instead, you can access the data files output by simulations on this [online repo](https://drive.google.com/drive/folders/1x6NZe2Aw3udhDNi-V0ljgFs_uFPPzK7l?usp=sharing). 
 
 Download this zip file and uncompress it under the [projects](projects) directory. This should create a projects/paper_done sub-directory.
 
@@ -48,7 +48,7 @@ You can now reproduce all visualization presented in the paper. Run:
 
 `python scripts/reproduce_visuals.py`
 
-This will save some general plots under [visuals](visuals) and project-specific plots are saved under the corresponding project in [projects/paper_done]([projects/paper_done])
+This will save some general plots under [visuals](visuals), while project-specific plots are saved under the corresponding project in [projects/paper_done]([projects/paper_done])
 
 
 
