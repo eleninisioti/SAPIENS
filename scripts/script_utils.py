@@ -3,6 +3,7 @@
 from lib.stable_baselines3.common.env_util import make_vec_env
 import os
 
+
 metric_labels = {"norm_reward": "Reward, $R_t$",
                  "diversity": "Diversity, $D_t$",
                  "level": "Level, $L_t$",
@@ -31,6 +32,7 @@ metric_labels_max = {"norm_reward": "Maximum Reward, $R^*_t$",
                      "volatilities": "Maximum Volatility, $\\hat{V}_t$"
 
                      }
+
 
 
 def find_ntrials(top_dir):

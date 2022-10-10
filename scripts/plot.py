@@ -60,8 +60,8 @@ def plot_project(eval_info, volatilities, conformities, measure_mnemonic, projec
 
     """
     plot_metric_with_time(eval_info, "norm_reward", project)
-    plot_metric_with_time(volatilities, "volatilities", project)
-    plot_metric_with_time(conformities, "conformities", project)
+    plot_metric_with_time(volatilities, "volatility", project)
+    plot_metric_with_time(conformities, "conformity", project)
 
     if measure_mnemonic:
         plot_metric_with_time(eval_info, "diversity", project)
