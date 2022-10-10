@@ -180,32 +180,25 @@ def evaluate_project(project, playground="wordcraft"):
                     total_trials.append(trial)
                     total_levels.append(level)
 
-                if config["measure_mnemonic"]:
-                    diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values = \
-                        process_mnemonic(model, last_length, process_occurs=config["measure_intergroup_alignment"])
+                    if config["measure_mnemonic"]:
+                        diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values = \
+                            process_mnemonic(model, last_length, process_occurs=config["measure_intergroup_alignment"])
 
-                    total_buffer_keys.extend(buffer_keys)
-                    total_buffer_values.extend(buffer_values)
-                    occurs_steps.extend([step] * len(buffer_keys))
-                    occurs_trials.extend([trial] * len(buffer_keys))
-                else:
-                    diversity = group_diversity = intragroup_alignment = 0
+                        total_buffer_keys.extend(buffer_keys)
+                        total_buffer_values.extend(buffer_values)
+                        occurs_steps.extend([step] * len(buffer_keys))
+                        occurs_trials.extend([trial] * len(buffer_keys))
+                    else:
+                        diversity = group_diversity = intragroup_alignment = 0
 
-                total_diversities.append(diversity)
-                total_group_diversities.append(group_diversity)
-                total_intragroup_alignment.append(intragroup_alignment)
+                    total_diversities.append(diversity)
+                    total_group_diversities.append(group_diversity)
+                    total_intragroup_alignment.append(intragroup_alignment)
 
     occurs = {}
 
     if config["measure_mnemonic"]:
-        print(total_steps)
-        print(np.array(total_rewards) / max_rew)
-        print(total_agents)
-        print(total_trials)
-        print(total_levels)
-        print(total_diversities)
-        print(total_group_diversities)
-        print(total_intragroup_alignment)
+
 
         eval_info = pd.DataFrame({"train_step": total_steps,
                                   "norm_reward": np.array(total_rewards) / max_rew,
