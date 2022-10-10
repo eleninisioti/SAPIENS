@@ -3,7 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 
-from server_scripts.script_utils import find_ntrials
+from scripts.script_utils import find_ntrials
 
 def measure_volatility(trajectories, n_trials):
     """ Measure volatility.
@@ -35,10 +35,10 @@ def measure_volatility(trajectories, n_trials):
             switches = [0]
 
             for idx, step in enumerate(steps[1:]):
-                current_traj = agent_traj.loc[agent_traj["train_step"] == step]["trajectory"].tolist()[0].split(",")
-                prev_traj = agent_traj.loc[agent_traj["train_step"] == steps[idx]]["trajectory"].tolist()[0].split(",")
-                #current_traj = list(current_traj["trajectory"])[0]
-                #prev_traj = list(prev_traj["trajectory"])[0]
+                current_traj = agent_traj.loc[agent_traj["train_step"] == step]
+                prev_traj = agent_traj.loc[agent_traj["train_step"] == steps[idx]]
+                current_traj = list(current_traj["trajectory"])[0]
+                prev_traj = list(prev_traj["trajectory"])[0]
                 transition = pd.DataFrame({"after": current_traj, "before": prev_traj})
                 diffs = list(np.where(transition["after"] != transition["before"], 1, 0))
                 switches.append(switches[-1] + np.prod(diffs))
@@ -78,7 +78,7 @@ def measure_conformity(trajectories, n_trials, n_agents):
 
     """
     conformity = []
-    df_conformity = {"train_step": [], "conformity": [], "trial": []}
+    df_conformity = {"train_step": [], "group_conformity": [], "trial": []}
 
     for trial in range(n_trials):
         agent_final_states = []
@@ -102,7 +102,7 @@ def measure_conformity(trajectories, n_trials, n_agents):
             current_conformity = 1 - ((len(current_step) - 1) / n_agents)
             trial_conformities.append(current_conformity)
             df_conformity["train_step"].append(step)
-            df_conformity["conformity"].append(current_conformity)
+            df_conformity["group_conformity"].append(current_conformity)
             df_conformity["trial"].append(trial)
 
         conformity.append(np.mean(trial_conformities))
