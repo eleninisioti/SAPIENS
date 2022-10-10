@@ -127,6 +127,7 @@ def compute_performance_metrics(eval_info, n_trials, n_agents):
     """
     metrics = {"time_to_first_success": [], "time_to_all_successes": [], "spread_time": [],
                "group_success": [], "avg_reward_conv": [], "max_reward_conv": []}
+    print(results)
 
     for trial in range(n_trials):
 
