@@ -20,9 +20,9 @@ from lib.stable_baselines3 import DQN
 from lib.wordcraft.wrappers.squash_wrapper import SquashWrapper
 from lib.wordcraft.utils.task_utils import recipe_book_info
 from gym.wrappers import FlattenObservation
-from scripts.plot import plot_project
-from scripts.compute_metrics import compute_metrics_project
-from scripts.script_utils import build_envs, find_ntrials
+from server_scripts.plot import plot_project
+from server_scripts.compute_metrics import compute_metrics_project
+from server_scripts.script_utils import build_envs, find_ntrials
 from lib.wordcraft.utils.task_utils import recipe_book_info
 
 
