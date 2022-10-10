@@ -1,0 +1,13 @@
+#!/bin/sh
+#SBATCH --job-name=sing0
+#SBATCH --account=imi@v100
+#SBATCH --nodes=1
+#SBATCH --time=20:00:00
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=10
+#SBATCH --hint=nomultithread
+#SBATCH --output=/gpfsscratch/rech/imi/utw61ti/a2c_log/jz_logs/finaltune_merging_paths_g_0.99_nsteps_5_lr_0.001_trial_7_cf_0.25_ent_1_grad_0.5_nagents_10.out
+#SBATCH --error=/gpfsscratch/rech/imi/utw61ti/a2c_log/jz_logs/finaltune_merging_paths_g_0.99_nsteps_5_lr_0.001_trial_7_cf_0.25_ent_1_grad_0.5_nagents_10.err
+module load pytorch-gpu/py3/1.7.1
+python scripts/train/train.py --task merging_paths --lr 0.001 --gamma 0.99 --nsteps 5 --trial 7 --vf_coef 0.25 --ent_coef 1 --grad 0.5 --n_agents 10 --mode server
