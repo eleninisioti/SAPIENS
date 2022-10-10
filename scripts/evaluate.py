@@ -100,11 +100,10 @@ def eval_model(model, env):
         del new_word_logger[-1]
     if len(new_word_logger):
         del action_logger[-1]
-        rew -=r
+        rew -= r
     path = [str(el) + "," for el in path]
     path = ','.join(path)
     return action_logger, new_word_logger, rew, path
-
 
 
 def evaluate_project(project, playground="wordcraft"):
@@ -120,25 +119,12 @@ def evaluate_project(project, playground="wordcraft"):
     project = project
     config = yaml.safe_load(open(project + "/config.yaml", "r"))
     recipe_book = config["task"]
-    #recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
+    # recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
 
-    env_config = {
-        "seed": None,
-        "recipe_book_path": None,
-        "feature_type": "one_hot",
-        "shuffle_features": False,
-        "random_feature_size": 300,
-        "max_depth": 8,
-        "split": "by_recipe",
-        "train_ratio": 1.0,
-        "num_distractors": 0,
-        "uniform_distractors": False,
-        "max_mix_steps": 8,
-        "subgoal_rewards": True,
-        "proportional": True}
-    env_config["log_path"] = project
-    env_config["data_path"] = recipe_book_info[recipe_book]["path"]
-
+    env_config = {"seed": None, "recipe_book_path": None, "feature_type": "one_hot", "shuffle_features": False,
+                  "random_feature_size": 300, "max_depth": 8, "split": "by_recipe", "train_ratio": 1.0,
+                  "num_distractors": 0, "uniform_distractors": False, "max_mix_steps": 8, "subgoal_rewards": True,
+                  "proportional": True, "log_path": project, "data_path": recipe_book_info[recipe_book]["path"]}
 
     max_rew = recipe_book_info[recipe_book]["best_reward"]
     n_steps = list(range(0, config["total_episodes"] * 16, 10000))
@@ -169,7 +155,7 @@ def evaluate_project(project, playground="wordcraft"):
         for trial in range(n_trials):
 
             for agent in range(n_agents):
-                if step==-1:
+                if step == -1:
                     path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
                 else:
 
@@ -309,7 +295,6 @@ def compare_projects(projects, parameter, save_dir, task):
 
     if "measure_mnemonic" not in config.keys():
         config["measure_mnemonic"] = False
-
 
     max_step = recipe_book_info[task]["max_steps"]
 
