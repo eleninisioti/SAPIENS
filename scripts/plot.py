@@ -2,6 +2,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
+
+cm = 1 / 2.54
+FIG_SIZE = (8.48 * cm, 6 * cm)
+ORDER = ["no-sharing", "dynamic-Boyd", "fully-connected", "small-world", "ring"]
+
+
 def plot_intergroup_alignment(alignment, save_dir):
     """ Plot inter-group alignment
 
