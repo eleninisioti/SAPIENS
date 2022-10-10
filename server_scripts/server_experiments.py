@@ -236,7 +236,7 @@ if __name__ == "__main__":
         "proportional": True}
 
     top_dir = "/gpfsscratch/rech/imi/utw61ti/sapiens_log/projects/"
-
+    top_dir = "projects/server"
     run_intergroup_alignment(trial) #  intra-group aligment in 6.4.3, as well as all diversity plots
 
 
