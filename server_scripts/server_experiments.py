@@ -97,7 +97,7 @@ def mnemonic_nosharing_merging(trial):
                             measure_mnemonic=True,
                             trial=trial)
             # train
-            group.learn()
+            #group.learn()
 
             # evaluate
             evaluate_project(project_path)
