@@ -147,7 +147,6 @@ def evaluate_project(project, playground="wordcraft"):
     env = build_envs(env_config)
 
     n_agents = config["n_agents"]
-    n_agents = 1
     n_trials = find_ntrials(project)
 
     # ---- evaluate -----

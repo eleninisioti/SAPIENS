@@ -210,7 +210,6 @@ def compute_metrics_project(project):
     """
     config = yaml.safe_load(open(project + "/config.yaml", "r"))
     n_agents = config["n_agents"]
-    n_agents = 1
     n_trials = find_ntrials(project)
 
     with open(project + "/data/eval_info.pkl", "rb") as f:
