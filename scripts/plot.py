@@ -2,12 +2,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
-
-cm = 1 / 2.54
-FIG_SIZE = (8.48 * cm, 6 * cm)
-ORDER = ["no-sharing", "dynamic-Boyd", "fully-connected", "small-world", "ring"]
-
-
 def plot_intergroup_alignment(alignment, save_dir):
     """ Plot inter-group alignment
 
@@ -60,8 +54,8 @@ def plot_project(eval_info, volatilities, conformities, measure_mnemonic, projec
 
     """
     plot_metric_with_time(eval_info, "norm_reward", project)
-    plot_metric_with_time(volatilities, "volatilities", project)
-    plot_metric_with_time(conformities, "conformities", project)
+    plot_metric_with_time(volatilities, "volatility", project)
+    plot_metric_with_time(conformities, "conformity", project)
 
     if measure_mnemonic:
         plot_metric_with_time(eval_info, "diversity", project)
