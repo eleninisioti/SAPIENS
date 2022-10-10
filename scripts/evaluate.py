@@ -26,308 +26,271 @@ from scripts.script_utils import build_envs, find_ntrials
 from lib.wordcraft.utils.task_utils import recipe_book_info
 
 
-def measure_volatility(trajectories, n_trials):
-    """ Measure volatility.
 
-    Volatility is the cumulative number of switches in the policy followed by an agent during consecutive evaluation
-    episodes.
-
-    trajectories: Dataframe
-        contains infromation collected during the evaluation of the project
-
-    n_trials: int
-        number of trials for this project
-
-
-    Returns information in two formats: a list for saving as a yaml file and a dataframe for plotting
-    """
-    n_agents = max(trajectories["agent"]) + 1
-    n_trials = n_trials
-    df_volatility = {"train_step": [], "volatility": [], "agent": [], "trial": []}
-    volatility = []
-    for trial in range(n_trials):
-        trial_switches = []
-
-        trial_traj = trajectories.loc[trajectories["trial"] == trial]
-        for agent in range(n_agents):
-
-            agent_traj = trial_traj.loc[trial_traj["agent"] == agent]
-            steps = list(agent_traj["train_step"])
-            switches = [0]
-
-            for idx, step in enumerate(steps[1:]):
-                current_traj = agent_traj.loc[agent_traj["train_step"] == step]["trajectory"].tolist()[0].split(",")
-                prev_traj = agent_traj.loc[agent_traj["train_step"] == steps[idx]]["trajectory"].tolist()[0].split(",")
-                transition = pd.DataFrame({"after": current_traj, "before": prev_traj})
-                diffs = list(np.where(transition["after"] != transition["before"], 1, 0))
-                switches.append(switches[-1] + np.prod(diffs))
-
-                df_volatility["train_step"].append(step)
-                df_volatility["volatility"].append(switches[-1])
-                df_volatility["agent"].append(agent)
-                df_volatility["trial"].append(trial)
-
-            trial_switches.append(switches[-1] / len(steps))
-
-        volatility.append(np.mean(trial_switches))
-
-    df_volatility = pd.DataFrame.from_dict(df_volatility)
-
-    return volatility, df_volatility
-
-
-def measure_conformity(trajectories, n_trials, n_agents):
-    """ Measures conformity.
-
-    Conformity is a behavioral metric that measures the percentage of agents following the same trajectory during the
-    same evaluation trial.
+def process_mnemonic(model, last_length, process_occurs):
+    """ Process mnemonic metrics of model
 
     Params
     ------
-    trajectories: Dataframe
-        contains infromation collected during the evaluation of the project
+    model: instance of ES_DQN
+        the trained model
 
-    n_trials: int
-        number of trials for this project
+    last_length: int
+        last processed timestep
 
-    n_agents: int
-        number of agents
-
-    Returns information in two formats: a list for saving as a yaml file and a dataframe for plotting
-
+    process_occurs: bool
+        if True, proccess occurences for computing inter-group alignment
     """
-    conformity = []
-    df_conformity = {"train_step": [], "group_conformity": [], "trial": []}
 
-    for trial in range(n_trials):
-        agent_final_states = []
-        for agent in range(n_agents):
+    diversity = np.mean(model.diversities[:last_length])
+    group_diversity = np.mean(model.group_diversities[:last_length])
+    intragroup_alignment = np.mean(model.intragroup_alignments[:last_length])
+    last_length = len(model.diversities)
 
-            agent_traj = trajectories.loc[trajectories["agent"] == agent]
-            steps = list(set(list(agent_traj["train_step"])))
+    if process_occurs:
+        group_occurs = model.group_occurs[-1]
 
-            final_states = []
-            for idx, step in enumerate(steps):
-                traj = agent_traj.loc[agent_traj["train_step"] == step]
-                traj = traj["trajectory"].values.tolist()[0]
+        buffer_keys = list(group_occurs.keys())
+        buffer_values = list(group_occurs.values())
 
-                final_states.append(traj[-1])
-            agent_final_states.append(final_states)
+    else:
+        buffer_keys = []
+        buffer_values = []
 
-        trial_conformities = []
-        for idx, step in enumerate(steps):
-            current_step = set([agent_final_states[agent][idx] for agent in range(n_agents) if idx < len(
-                agent_final_states[agent])])
-            current_conformity = 1 - ((len(current_step) - 1) / n_agents)
-            trial_conformities.append(current_conformity)
-            df_conformity["train_step"].append(step)
-            df_conformity["group_conformity"].append(current_conformity)
-            df_conformity["trial"].append(trial)
-
-        conformity.append(np.mean(trial_conformities))
-
-    df_conformity = pd.DataFrame.from_dict(df_conformity)
-
-    return conformity, df_conformity
+    return diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values
 
 
-def compute_performance_metrics(eval_info, n_trials, n_agents):
-    """ Compute performance-based metrics.
-
-
-    Params
-    ------
-    eval_info: Dataframe
-        contains infromation collected during the evaluation of the project
-
-    n_trials: int
-        number of trials for this project
-
-    n_agents: int
-        number of agents
+def eval_model(model, env):
     """
-    metrics = {"time_to_first_success": [], "time_to_all_successes": [], "spread_time": [],
-               "group_success": [], "avg_reward_conv": [], "max_reward_conv": []}
-
-    for trial in range(n_trials):
-
-        # ----- at which timestep did at least one agent find the correct solution -----
-        first_steps = []
-        results = eval_info.loc[(eval_info["trial"] == trial)]
-
-        for agent in range(n_agents):
-
-            results_max = results.loc[(results["norm_reward"] == 1.0)]
-            results_max = results_max.loc[(results["agent"] == agent)]
-            steps = list(results_max["train_step"])
-            if len(steps):
-                first_steps.append(min(steps))
-
-        if len(first_steps):
-            first_step_one = min(first_steps)
-            failed_trial = 0
-        else:
-            first_step_one = np.nan
-            failed_trial = 1
-
-        # detect when all agents found the optimal solution
-        if len(first_steps) == n_agents:
-            first_step_all = max(first_steps)
-            time_to_spread = first_step_all - first_step_one
-        else:
-            first_step_all = np.nan
-            time_to_spread = np.nan
-
-        metrics["time_to_all_successes"].append(first_step_all)
-        metrics["time_to_first_success"].append(first_step_one)
-        metrics["group_success"].append(1 - failed_trial)
-        metrics["spread_time"].append(time_to_spread)
-
-        last_rewards = []
-        for agent in range(n_agents):
-            agent_results = results.loc[(results["agent"] == agent)]
-            last_step = max(list(agent_results["train_step"]))
-            last_reward = agent_results.loc[agent_results["train_step"] == last_step]
-            last_reward = float(last_reward["norm_reward"])
-            last_rewards.append(last_reward)
-
-        metrics["avg_reward_conv"].append(np.mean(last_rewards))
-        metrics["max_reward_conv"].append(np.max(last_rewards))
-
-    return metrics
+    A model is evaluated for a single episode
 
 
-def compute_behavioral_metrics(eval_info, n_trials, n_agents):
-    """ Compute behavioral metrics
+    Parameters
+    ----------
+    model: ES_DQN
+        trained model
 
-    Params
-    ------
-    eval_info: Dataframe
-        contains infromation collected during the evaluation of the project
-
-    n_trials: int
-        number of trials for this project
-
-    n_agents: int
-        number of agents
+    env: WordcraftEnv
+        a gym environment
     """
-    volatility, df_volatility = measure_volatility(eval_info, n_trials)
-    conformity, df_conformity = measure_conformity(eval_info, n_trials, n_agents)
+    path = []  # contains the path chosen during the episode
+    action_logger = []  # contains the actions chosen during the episode
+    new_word_logger = []  # contains the unique words created during the episode
+    obs = env.reset()
+    i = rew = done = 0
+    env_temp = env.envs[0]
+    while not done:
+        action = model.predict(obs, deterministic=True)
 
-    metrics = {"volatility": volatility, "conformity": conformity}
+        action_logger.append(action[0])
+        obs, r, done, info = env.step(action[0])
+        rew += r
 
-    return metrics, df_volatility, df_conformity
+        if not len(env_temp.selection):  # composition step
+            _table = np.array(env_temp.table_index)[np.array(env_temp.table_index) != -1]
+            idx = _table[len(_table) - 1]
+            e = env_temp.recipe_book.entities[idx]
+            if e not in new_word_logger and "base" not in e and "dist" not in e:
+                new_word_logger.append(e)
+
+            path.append(e)
+
+        i += 1
+
+    if len(new_word_logger):
+        del new_word_logger[-1]
+    if len(new_word_logger):
+        del action_logger[-1]
+        rew -= r
+    path = [str(el) + "," for el in path]
+    path = ','.join(path)
+    return action_logger, new_word_logger, rew, path
 
 
-def compute_metrics_project(project):
-    """ Compute all metrics for project
+def evaluate_project(project, playground="wordcraft"):
+    """
+    Evaluates all models under a project and returns dataframes for how different metrics evolve  training time.
 
-    Params
-    ------
+    Parameters
+    ---------
     project: str
-        directory of project (under SAPIENS)
+        directory of project
     """
+
+    project = project
     config = yaml.safe_load(open(project + "/config.yaml", "r"))
+    recipe_book = config["task"]
+    # recipe_name = [key for key, value in recipe_book_info.items() if value["path"] == recipe_path][0]
+
+    env_config = {"seed": None, "recipe_book_path": None, "feature_type": "one_hot", "shuffle_features": False,
+                  "random_feature_size": 300, "max_depth": 8, "split": "by_recipe", "train_ratio": 1.0,
+                  "num_distractors": 0, "uniform_distractors": False, "max_mix_steps": 8, "subgoal_rewards": True,
+                  "proportional": True, "log_path": project, "data_path": recipe_book_info[recipe_book]["path"]}
+
+    max_rew = recipe_book_info[recipe_book]["best_reward"]
+    n_steps = list(range(0, config["total_episodes"] * 16, 10000))
+    env = build_envs(env_config)
+
     n_agents = config["n_agents"]
     n_trials = find_ntrials(project)
 
-    with open(project + "/data/eval_info.pkl", "rb") as f:
-        eval_info = pickle.load(f)
+    # ---- evaluate -----
+    total_rewards = []
+    total_agents = []
+    total_trajectories = []
+    total_steps = []
+    total_trials = []
+    total_levels = []
 
-        performance_metrics = compute_performance_metrics(eval_info, n_trials, n_agents)
-        behavioral_metrics, df_volatility, df_conformity = compute_behavioral_metrics(eval_info, n_trials, n_agents)
+    total_diversities = []
+    total_group_diversities = []
+    total_intragroup_alignment = []
+    total_buffer_keys = []
+    total_buffer_values = []
+    occurs_steps = []
+    occurs_trials = []
 
-        metrics = {**performance_metrics, **behavioral_metrics}
+    last_length = -1
 
-        # pkl file contains values in all trials
-        save_file = project + "/data/pop_metrics.pkl"
-        with open(save_file, "wb") as f:
-            pickle.dump(metrics, f)
+    for i, step in enumerate(n_steps[1:]):
+        for trial in range(n_trials):
 
-        # yaml file contains average over trials
-        metrics_mean = {}
-        metrics_var = {}
-        for key, value in metrics.items():
-            metrics_mean[key + "_mean"] = float(np.nanmean(value))
-            metrics_var[key + "_var"] = float(np.nanvar(value))
+            for agent in range(n_agents):
+                if step == -1:
+                    path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
+                else:
 
-        metrics_stat = {**metrics_mean, **metrics_var}
+                    path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
 
-        save_file = project + "/data/pop_metrics.yaml"
-        with open(save_file, "w") as f:
-            yaml.dump(metrics_stat, f)
+                if os.path.exists(path + ".zip"):
+                    try:
+                        model = DQN.load(path)
 
-    return df_volatility, df_conformity
+                    except FileNotFoundError:
+                        break
+
+                    env.reset()
+                    actions, unique_words, rewards, trajectory = eval_model(model, env)
+
+                    all_levels = [0] + [int(el[(el.rindex("_") + 1):]) for el in unique_words]
+                    level = max(all_levels)
+                    total_rewards.append(float(rewards[0]))
+                    total_agents.append(agent)
+                    total_trajectories.append(trajectory)
+                    total_steps.append(step)
+                    total_trials.append(trial)
+                    total_levels.append(level)
+
+                    if config["measure_mnemonic"]:
+                        diversity, group_diversity, intragroup_alignment, last_length, buffer_keys, buffer_values = \
+                            process_mnemonic(model, last_length, process_occurs=config["measure_intergroup_alignment"])
+
+                        total_buffer_keys.extend(buffer_keys)
+                        total_buffer_values.extend(buffer_values)
+                        occurs_steps.extend([step] * len(buffer_keys))
+                        occurs_trials.extend([trial] * len(buffer_keys))
+                    else:
+                        diversity = group_diversity = intragroup_alignment = 0
+
+                    total_diversities.append(diversity)
+                    total_group_diversities.append(group_diversity)
+                    total_intragroup_alignment.append(intragroup_alignment)
+
+    occurs = {}
+
+    if config["measure_mnemonic"]:
 
 
-def measure_intergroup_alignment(projects):
-    """ Measure intergroup alignment.
+        eval_info = pd.DataFrame({"train_step": total_steps,
+                                  "norm_reward": np.array(total_rewards) / max_rew,
+                                  "agent": total_agents,
+                                  "trial": total_trials,
+                                  "level": total_levels,
+                                  "trajectory": total_trajectories,
+                                  "diversity": total_diversities,
+                                  "group_diversity": total_group_diversities,
+                                  "intragroup_alignment": total_intragroup_alignment})
+
+        if config["measure_intergroup_alignment"]:
+            occurs = pd.DataFrame({"buffer_keys": total_buffer_keys,
+                                   "buffer_values": total_buffer_values,
+                                   "train_step": occurs_steps,
+                                   "trial": occurs_trials})
+
+    else:
+
+        eval_info = pd.DataFrame({"train_step": total_steps,
+                                  "norm_reward": np.array(total_rewards) / max_rew,
+                                  "agent": total_agents,
+                                  "trial": total_trials,
+                                  "level": total_levels,
+                                  "trajectory": total_trajectories})
+
+    # ----- save evaluation data -----
+    eval_save_dir = project + "/data"
+
+    if os.path.exists(eval_save_dir):
+        shutil.rmtree(eval_save_dir)
+
+    if not os.path.exists(eval_save_dir):
+        os.makedirs(eval_save_dir, exist_ok=True)
+
+    with open(eval_save_dir + "/eval_info.pkl", "wb") as f:
+        pickle.dump(eval_info, f)
+
+    with open(eval_save_dir + "/occurs.pkl", "wb") as f:
+        pickle.dump(occurs, f)
+
+    # ----- produce evaluation plots -----
+    volatilities, conformities = compute_metrics_project(project)
+
+    with open(eval_save_dir + "/behavioral_metrics.pkl", "wb") as f:
+        pickle.dump({"volatility": volatilities, "conformity": conformities}, f)
+
+    plot_project({"": eval_info}, {"": volatilities}, {"": conformities}, config["measure_mnemonic"], project)
+
+
+def compare_projects(projects, parameter, save_dir, task):
+    """  Compares multiple projects whose configuration differs in a desired parameter.
+
+    For example, if parameter="shape", we compare different topologies. If paramter="n_agents", we compare different
+    group sizes. As comparisons, we produce plots of all performance metrics.
 
     Params
     ------
     projects: list of str
-        directories of projects for comparing alignment
+        project directories
+
+    parameter: str
+        name of parameter for comparison
 
     """
-    total_occurs = {}
+    total_eval_info = {}
+    total_volatilities = {}
+    total_conformities = {}
     for project in projects:
+        # load eval_info
+        eval_save_dir = project + "/data"
+
+        with open(eval_save_dir + "/eval_info.pkl", "rb") as f:
+            eval_info = pickle.load(f)
+
         # find label of project
-        config = yaml.safe_load(open(project + "/config.yaml", 'r'))
-        label = config["shape"]
+        config = yaml.safe_load(open(project + "/trial_0/config.yaml", "r"))
+        label = config[parameter]
 
-        with open(project + "/data/occurs.pkl", "rb") as f:
-            occurs = pickle.load(f)
-        total_occurs[label] = occurs
+        total_eval_info[label] = eval_info
 
-    n_steps = list(range(0, config["total_episodes"] * 16, 10000))
-    n_trials = config["n_trials"]
-    total_df = []
-    for step in n_steps[1:]:
-        step_diffs = {}
-        for trial in range(n_trials):
-            done_pairs = []
+        with open(eval_save_dir + "/behavioral_metrics.pkl", "rb") as f:
+            beh_metrics = pickle.load(f)
+        total_volatilities[label] = beh_metrics["volatility"]
 
-            for idx1, data1 in total_occurs.items():
-                for idx2, data2 in total_occurs.items():
-                    if idx1 != idx2 and tuple([idx1, idx2]) not in done_pairs and  tuple([idx2, idx1]) not in \
-                            done_pairs:
+        total_conformities[label] = beh_metrics["conformity"]
 
-                        current_data1 = data1.loc[data1["trial"] == trial]
-                        current_data1 = current_data1.loc[current_data1["train_step"] == step]
-                        current_data1 = current_data1.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
-                        #to_dict()
+    if "measure_mnemonic" not in config.keys():
+        config["measure_mnemonic"] = False
 
-                        current_data2 = data2.loc[data2["trial"] == trial]
-                        current_data2 = current_data2.loc[current_data2["train_step"] == step]
-                        current_data2 = current_data2.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
+    max_step = recipe_book_info[task]["max_steps"]
 
-                        # compare the two dicts
-                        list1 = []
-                        for key, value in current_data1.items():
-                            for _ in range(value[0]):
-                                list1.append(key)
-                        list1.sort()
-                        list2 = []
-                        for key, value in current_data2.items():
-                            for _ in range(value[0]):
-                                list2.append(key)
-                        list2.sort()
-
-                        diffs = 0
-                        for idx, el in enumerate(list1):
-                            if (len(list2) > idx) and el != list2[idx]:
-                                diffs += 1
-
-                        diff = diffs / max([len(list1), len(list2), 1])
-                        df = pd.DataFrame(columns=["pair", "trial", "train_step", "diff"])
-                        df.loc[0] = [tuple([idx1, idx2]), trial, step, 1 - diff]
-
-                        if len(total_df):
-
-                            total_df = total_df.append(df, ignore_index=True)
-                        else:
-                            total_df = df
-
-                        done_pairs.append(tuple([idx1, idx2]))
-
-    return total_df
+    plot_project(total_eval_info, total_volatilities, total_conformities, config["measure_mnemonic"], save_dir,
+                 max_step)

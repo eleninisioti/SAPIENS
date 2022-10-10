@@ -37,8 +37,6 @@ def measure_volatility(trajectories, n_trials):
             for idx, step in enumerate(steps[1:]):
                 current_traj = agent_traj.loc[agent_traj["train_step"] == step]["trajectory"].tolist()[0].split(",")
                 prev_traj = agent_traj.loc[agent_traj["train_step"] == steps[idx]]["trajectory"].tolist()[0].split(",")
-                current_traj = list(current_traj["trajectory"])[0]
-                prev_traj = list(prev_traj["trajectory"])[0]
                 transition = pd.DataFrame({"after": current_traj, "before": prev_traj})
                 diffs = list(np.where(transition["after"] != transition["before"], 1, 0))
                 switches.append(switches[-1] + np.prod(diffs))
