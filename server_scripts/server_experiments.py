@@ -175,7 +175,7 @@ def run_intergroup_alignment(trial):
     num_neurons = 64
     num_layers = 2
 
-    tasks = {"single_path": 2000, "merging_paths": 50000, "bestoften_paths": 50000}
+    tasks = { "bestoften_paths": 50000}
 
 
     for task, total_episodes in tasks.items():
@@ -210,10 +210,10 @@ def run_intergroup_alignment(trial):
                             trial=trial,
                             task=task)
             # train
-            #group.learn()
+            group.learn()
 
             # evaluate
-            evaluate_project(project_path)
+            #evaluate_project(project_path)
 
 
 if __name__ == "__main__":
