@@ -210,10 +210,10 @@ def run_intergroup_alignment(trial):
                             trial=trial,
                             task=task)
             # train
-            group.learn()
+            #group.learn()
 
             # evaluate
-            #evaluate_project(project_path)
+            evaluate_project(project_path)
 
 
 if __name__ == "__main__":
