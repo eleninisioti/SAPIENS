@@ -24,7 +24,7 @@ from scripts.plot import plot_project
 from scripts.compute_metrics import compute_metrics_project
 from scripts.script_utils import build_envs, find_ntrials
 from lib.wordcraft.utils.task_utils import recipe_book_info
-
+from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 
 
 def process_mnemonic(model, last_length, process_occurs):
@@ -276,7 +276,8 @@ def compare_projects(projects, parameter, save_dir, task):
             eval_info = pickle.load(f)
 
         # find label of project
-        config = yaml.safe_load(open(project + "/trial_0/config.yaml", "r"))
+        config = yaml.safe_load(open(project + "/config.yaml", "r"))
+        config = yaml.safe_load(open(project + "/config.yaml", "r"))
         label = config[parameter]
 
         total_eval_info[label] = eval_info
@@ -294,3 +295,11 @@ def compare_projects(projects, parameter, save_dir, task):
 
     plot_project(total_eval_info, total_volatilities, total_conformities, config["measure_mnemonic"], save_dir,
                  max_step)
+
+
+if __name__ == "__main__":
+    top_dir = "projects/" + sys.argv[1]
+    projects = [os.path.join(top_dir, o) for o in os.listdir(top_dir)
+                if (os.path.isdir(os.path.join(top_dir, o))) and ("plots" not in o and "data" not in o)]
+    for project in projects:
+        evaluate_project(project)

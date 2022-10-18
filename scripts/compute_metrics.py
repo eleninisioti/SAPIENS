@@ -5,6 +5,78 @@ import numpy as np
 
 from scripts.script_utils import find_ntrials
 
+
+def measure_intergroup_alignment(projects):
+    """ Measure intergroup alignment.
+
+    Params
+    ------
+    projects: list of str
+        directories of projects for comparing alignment
+
+    """
+    total_occurs = {}
+    for project in projects:
+        # find label of project
+        config = yaml.safe_load(open(project + "/config.yaml", 'r'))
+        label = config["shape"]
+
+        with open(project + "/data/occurs.pkl", "rb") as f:
+            occurs = pickle.load(f)
+        total_occurs[label] = occurs
+
+    n_steps = list(range(0, config["total_episodes"] * 16, 10000))
+    n_trials = config["n_trials"]
+    total_df = []
+    for step in n_steps[1:]:
+        step_diffs = {}
+        for trial in range(n_trials):
+            done_pairs = []
+
+            for idx1, data1 in total_occurs.items():
+                for idx2, data2 in total_occurs.items():
+                    if idx1 != idx2 and tuple([idx1, idx2]) not in done_pairs and  tuple([idx2, idx1]) not in \
+                            done_pairs:
+
+                        current_data1 = data1.loc[data1["trial"] == trial]
+                        current_data1 = current_data1.loc[current_data1["train_step"] == step]
+                        current_data1 = current_data1.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
+                        #to_dict()
+
+                        current_data2 = data2.loc[data2["trial"] == trial]
+                        current_data2 = current_data2.loc[current_data2["train_step"] == step]
+                        current_data2 = current_data2.groupby('buffer_keys')['buffer_values'].apply(list).to_dict()
+
+                        # compare the two dicts
+                        list1 = []
+                        for key, value in current_data1.items():
+                            for _ in range(value[0]):
+                                list1.append(key)
+                        list1.sort()
+                        list2 = []
+                        for key, value in current_data2.items():
+                            for _ in range(value[0]):
+                                list2.append(key)
+                        list2.sort()
+
+                        diffs = 0
+                        for idx, el in enumerate(list1):
+                            if (len(list2) > idx) and el != list2[idx]:
+                                diffs += 1
+
+                        diff = diffs / max([len(list1), len(list2), 1])
+                        df = pd.DataFrame(columns=["pair", "trial", "train_step", "diff"])
+                        df.loc[0] = [tuple([idx1, idx2]), trial, step, 1 - diff]
+
+                        if len(total_df):
+                            total_df = total_df.append(df, ignore_index=True)
+                        else:
+                            total_df = df
+
+                        done_pairs.append(tuple([idx1, idx2]))
+
+    return total_df
+
 def measure_volatility(trajectories, n_trials):
     """ Measure volatility.
 
@@ -39,7 +111,7 @@ def measure_volatility(trajectories, n_trials):
                 prev_traj = agent_traj.loc[agent_traj["train_step"] == steps[idx]]["trajectory"].tolist()[0].split(",")
                 transition = pd.DataFrame({"after": current_traj, "before": prev_traj})
                 diffs = list(np.where(transition["after"] != transition["before"], 1, 0))
-                switches.append(switches[-1] + np.prod(diffs))
+                switches.append(switches[-1] + np.abs(np.sum(diffs)))
 
                 df_volatility["train_step"].append(step)
                 df_volatility["volatility"].append(switches[-1])
@@ -88,9 +160,9 @@ def measure_conformity(trajectories, n_trials, n_agents):
             final_states = []
             for idx, step in enumerate(steps):
                 traj = agent_traj.loc[agent_traj["train_step"] == step]
-                traj = traj["trajectory"].values.tolist()[0]
+                traj = traj["trajectory"]["trajectory"].tolist()[0].split(",")
 
-                final_states.append(traj[-1])
+                final_states.append(traj[-2])
             agent_final_states.append(final_states)
 
         trial_conformities = []
@@ -259,7 +331,7 @@ def measure_intergroup_alignment(projects):
         total_occurs[label] = occurs
 
     n_steps = list(range(0, config["total_episodes"] * 16, 10000))
-    n_trials = config["n_trials"]
+    n_trials = find_ntrials(project)
     total_df = []
     for step in n_steps[1:]:
         step_diffs = {}

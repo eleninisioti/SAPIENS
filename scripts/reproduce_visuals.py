@@ -15,7 +15,7 @@ sys.path.append(".")
 from scripts.evaluate import compare_projects
 from lib.wordcraft.utils.task_utils import recipe_book_info
 from scripts.script_utils import metric_labels, metric_labels_avg, metric_labels_max
-
+from scripts.compute_metrics import measure_intergroup_alignment
 
 # general figure configuration
 params = {'legend.fontsize': 9,
@@ -223,6 +223,8 @@ def fig4():
                 axs[1][task_idx].text((x1 + x2) * .5, y , sig, ha='center', va='bottom', color=col)
 
             idx+=1
+
+
         #axs[0][task_idx].get_legend().remove()
         axs[0][task_idx].set(xlabel="", ylabel="")
         axs[1][task_idx].set(xlabel="", ylabel="")
@@ -262,6 +264,7 @@ def fig4():
 
 def single_path():
     top_dir = "projects/paper_done/recipes/single_path"
+    top_dir = "projects/server/12_10_2022/alignment/task_single_path"
     projects = [os.path.join(top_dir, o) for o in os.listdir(top_dir)
                 if (os.path.isdir(os.path.join(top_dir, o))) and ("plots" not in o and "data" not in o)]
 
@@ -270,6 +273,8 @@ def single_path():
 
 def merging_paths():
     top_dir = "projects/paper_done/recipes/merging_paths"
+    top_dir = "projects/server/12_10_2022/alignment/task_merging_paths"
+
     projects = [os.path.join(top_dir, o) for o in os.listdir(top_dir)
                 if (os.path.isdir(os.path.join(top_dir, o))) and ("plots" not in o and "data" not in o)]
     compare_projects(projects, parameter="shape", save_dir=top_dir, task="merging_paths")
@@ -507,9 +512,15 @@ def intergroup_alignment():
                               "/bestoften_paths"
                      }
 
-     order = ["independent",  "dynamic", "fully-connected","ring","small-world"]
+     project_dirs = {"1path": "/home/elena/workspace/projects/SAPIENS/projects/server/12_10_2022/alignment"
+                              "/task_single_path",
+                     "cross": "/home/elena/workspace/projects/SAPIENS/projects/server/12_10_2022/alignment"
+                              "/task_merging_paths"
+                     }
+
+     order = ["no-sharing",  "dynamic-Boyd", "fully-connected","ring","small-world"]
      counter_row = -1
-     fig, ax = plt.subplots(nrows=5, ncols=3, figsize=(fig_size[0] * 2, fig_size[0] * 3), dpi=300,
+     fig, ax = plt.subplots(nrows=5, ncols=3, figsize=(fig_size[0] * 3, fig_size[0] * 3), dpi=300,
                             sharey="row", sharex="col")
      for idx1, method1 in enumerate(order):
          counter_row += 1
@@ -519,20 +530,26 @@ def intergroup_alignment():
              key1 = [method1 ,  method2]
              key2 = [method2 , method1]
 
-             if key1 not in accept and key2 not in accept:
+             if key1 not in accept:
                  accept_second[tuple(key1)] = method2
                  accept.append(tuple(key1))
+
+             if key2 not in accept:
+                 accept_second[tuple(key2)] = method2
+                 accept.append(tuple(key2))
 
          counter_col =-1
          for key, projects_top_dir in project_dirs.items():
              counter_col += 1
+             projects = [os.path.join(projects_top_dir , o) for o in os.listdir(projects_top_dir )
+                         if (os.path.isdir(os.path.join(projects_top_dir , o))) and ("plots" not in o and "data" not in o)]
 
+             #diffs_df = measure_intergroup_alignment(projects)
+             #pickle.dump(diffs_df, open(projects_top_dir + "/diff_df.pkl", "wb") )
 
              with open(projects_top_dir + "/diff_df.pkl", "rb") as f:
                 total_df = pickle.load(f)
                 total_df = total_df[total_df['pair'].isin(accept)]
-
-
 
                 columns_values_map = {"pair": accept_second}
                 df = total_df
@@ -544,9 +561,7 @@ def intergroup_alignment():
                         df[col] = df[col].map(lambda x: cat_map[x])
                 total_df = df
 
-
-
-
+             # converting disagreement to alignment
              total_df["diff"] = 1 - total_df["diff"]
 
              sns.lineplot(x="train_step",
@@ -561,30 +576,37 @@ def intergroup_alignment():
              if counter_col:
                  ax[counter_row, counter_col].get_legend().remove()
              else:
-                ax[counter_row, counter_col].legend(loc="best")
-     save_path = "visuals/inter_total.pdf"
+                ax[counter_row, counter_col].legend(loc="lower center", ncol=2)
+
+             if counter_col == 1:
+                ax[counter_row, counter_col].set_title(method1)
+             ax[counter_row, counter_col].set_ylim(0.2,1)
+
+
+
+     save_path = "visuals/inter_total_new.pdf"
      plt.savefig(save_path)
      plt.clf()
 
 if __name__ == "__main__":
 
     # this will create Figure 4
-    fig4()
+    #fig4()
 
     # this will plot comparisons for different social network structures for all metrics in task single path
-    single_path()
+    #single_path()
 
     # this will plot comparisons for different social network structures for all metrics in task merging paths
-    merging_paths()
+    #merging_paths()
 
     # this will plot comparisons for different social network structures for all metrics in task best-of-ten paths
-    bestoften_paths()
+    #bestoften_paths()
 
     # this will create Figure 6
-    fig6()
+    #fig6()
 
     # this will create scaling figure (Figure 12)
-    scaling()
+    #scaling()
 
     # this will create inter-group alignment figure (Figure 11)
     intergroup_alignment()
