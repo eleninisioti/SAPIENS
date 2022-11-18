@@ -155,6 +155,7 @@ def evaluate_project(project, playground="wordcraft"):
     for i, step in enumerate(n_steps[1:]):
         for trial in range(n_trials):
 
+
             for agent in range(n_agents):
                 if step == -1:
                     path = project + "/trial_" + str(trial) + "/models/agent_" + str(agent) + "_" + str(step) + "_steps"
@@ -169,9 +170,12 @@ def evaluate_project(project, playground="wordcraft"):
                     except FileNotFoundError:
                         break
 
+                    print("evaluating trial ", str(trial), " model ", path)
+
+
                     env.reset()
-                    print("evaluating trial ", str(trial), " model ", model)
                     actions, unique_words, rewards, trajectory = eval_model(model, env)
+
 
                     all_levels = [0] + [int(el[(el.rindex("_") + 1):]) for el in unique_words]
                     level = max(all_levels)
