@@ -296,7 +296,7 @@ def fig6():
     vol_task_dirs = ["projects/paper_done/insights/diversity/single_path",
                      "projects/paper_done/insights/diversity/merging_paths",
                      "projects/paper_done/insights/diversity/bestoften_paths",]
-    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=[fig_size[0]*2, fig_size[1]*1], dpi=300)
+    fig, axs = plt.subplots(nrows=1, ncols=3, figsize=[fig_size[0]*2, fig_size[1]*0.8], dpi=300)
 
     counter = -1
     for projects_top_dir in vol_task_dirs:
@@ -603,13 +603,13 @@ if __name__ == "__main__":
     #bestoften_paths()
 
     # this will create Figure 6
-    #fig6()
+    fig6()
 
     # this will create scaling figure (Figure 12)
     #scaling()
 
     # this will create inter-group alignment figure (Figure 11)
-    intergroup_alignment()
+    #intergroup_alignment()
 
 
 

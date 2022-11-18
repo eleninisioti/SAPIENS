@@ -24,6 +24,7 @@ from server_scripts.plot import plot_project
 from server_scripts.compute_metrics import compute_metrics_project
 from server_scripts.script_utils import build_envs, find_ntrials
 from lib.wordcraft.utils.task_utils import recipe_book_info
+from lib.wordcraft.wordcraft.env_nogoal import WordCraftEnvNoGoal
 
 
 def process_mnemonic(model, last_length, process_occurs):
