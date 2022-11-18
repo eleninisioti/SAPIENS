@@ -170,6 +170,7 @@ def evaluate_project(project, playground="wordcraft"):
                         break
 
                     env.reset()
+                    print("evaluating trial ", str(trial), " model ", model)
                     actions, unique_words, rewards, trajectory = eval_model(model, env)
 
                     all_levels = [0] + [int(el[(el.rindex("_") + 1):]) for el in unique_words]
