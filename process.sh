@@ -1,3 +1,4 @@
+#!/bin/sh
 #SBATCH --account=imi@cpu
 #SBATCH --cpus-per-task=20
 #SBATCH --job-name=Test
