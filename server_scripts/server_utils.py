@@ -33,7 +33,7 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
     with open(slurmjob_path, "w") as fh:
         fh.writelines("#!/bin/sh\n")
         if gpu:
-            fh.writelines("#SBATCH --account=imi@v100\n")
+            fh.writelines("#SBATCH --account=imi@cpu\n")
             fh.writelines("#SBATCH --gres=gpu:1\n")
             if long_run:
                 fh.writelines("#SBATCH --qos=qos_gpu-t4\n")
