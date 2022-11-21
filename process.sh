@@ -6,5 +6,5 @@
 #SBATCH -e /gpfsscratch/rech/imi/utw61ti/sapiens_log/jz_logs/test.err
 #SBATCH --time=12:00:00
 
-python3 server_scripts/process_projects.py 
+python3 process_projects.py 
 
