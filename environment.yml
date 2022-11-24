@@ -182,7 +182,6 @@ dependencies:
     - google-pasta==0.2.0
     - grpcio==1.43.0
     - gym==0.18.0
-    - gym-maze==0.4
     - gym-notices==0.0.6
     - h5py==3.7.0
     - importlib-resources==5.9.0
