@@ -515,7 +515,9 @@ def intergroup_alignment():
      project_dirs = {"1path": "/home/elena/workspace/projects/SAPIENS/projects/server/12_10_2022/alignment"
                               "/task_single_path",
                      "cross": "/home/elena/workspace/projects/SAPIENS/projects/server/12_10_2022/alignment"
-                              "/task_merging_paths"
+                              "/task_merging_paths",
+                     "10path": "/home/elena/workspace/projects/SAPIENS/projects/server/12_10_2022/alignment"
+                              "/task_bestoften_paths"
                      }
 
      order = ["no-sharing",  "dynamic-Boyd", "fully-connected","ring","small-world"]
@@ -544,8 +546,8 @@ def intergroup_alignment():
              projects = [os.path.join(projects_top_dir , o) for o in os.listdir(projects_top_dir )
                          if (os.path.isdir(os.path.join(projects_top_dir , o))) and ("plots" not in o and "data" not in o)]
 
-             #diffs_df = measure_intergroup_alignment(projects)
-             #pickle.dump(diffs_df, open(projects_top_dir + "/diff_df.pkl", "wb") )
+             diffs_df = measure_intergroup_alignment(projects)
+             pickle.dump(diffs_df, open(projects_top_dir + "/diff_df.pkl", "wb") )
 
              with open(projects_top_dir + "/diff_df.pkl", "rb") as f:
                 total_df = pickle.load(f)
@@ -603,13 +605,13 @@ if __name__ == "__main__":
     #bestoften_paths()
 
     # this will create Figure 6
-    fig6()
+    #fig6()
 
     # this will create scaling figure (Figure 12)
     #scaling()
 
     # this will create inter-group alignment figure (Figure 11)
-    #intergroup_alignment()
+    intergroup_alignment()
 
 
 

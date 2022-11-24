@@ -54,8 +54,44 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
 
     os.system("sbatch %s" % slurmjob_path)
 
+def run_server_curta(job_name, trial, gpu=False, time="20:00:00", long_run=False, account="jeanzay_id"):
+    script = "server_scripts/server_experiments.py " + str(trial)
+    if account == "jeanzay_id":
+        print("You must replace jeanzay_id with your own jeanzay id to run experiments on the server")
+
+    logs_dir = "/scratch/enisioti/sapiens_log/jz_logs"
+    python_path = "python"
+    slurm_dir = "/scratch/enisioti/sapiens_log/slurm"
+
+    # create logging directories
+    if not os.path.exists(slurm_dir + "/" + job_name):
+        os.makedirs(slurm_dir + "/" + job_name)
+    if not os.path.exists(logs_dir + "/" + job_name):
+        os.makedirs(logs_dir + "/" + job_name)
+
+    slurmjob_path = os.path.join(slurm_dir + "/" + job_name + "/script.sh")
+    create_slurmjob_cmd = "touch {}".format(slurmjob_path)
+    os.system(create_slurmjob_cmd)
+
+    # write arguments into the slurmjob file
+    with open(slurmjob_path, "w") as fh:
+        fh.writelines("#!/bin/bash\n")
+        fh.writelines("#SBATCH -J fully\n")
+        # fh.writelines("#SBATCH --nodes=1\n")
+        fh.writelines("#SBATCH -t 30:00:00\n")
+        fh.writelines("#SBATCH -N 1\n")
+        fh.writelines("#SBATCH --ntasks-per-node=1\n")
+        scratch_dir = "/scratch/enisioti/sapiens_log/jz_logs"
+        fh.writelines("#SBATCH --output=" + scratch_dir + "/%j.out\n")
+        fh.writelines("#SBATCH --error=" + scratch_dir + "/%j.err\n")
+        batch_cmd = python_path + " " + script
+        fh.writelines(batch_cmd)
+
+    os.system("sbatch %s" % slurmjob_path)
 
 if __name__== "__main__":
     job_name = "run_mnemonic"
+
+
     for trial in range(5):
         run_server(job_name=job_name +"_trial_" + str(trial), trial=trial, account="utw61ti")
