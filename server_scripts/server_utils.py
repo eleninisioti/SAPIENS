@@ -94,4 +94,4 @@ if __name__== "__main__":
 
 
     for trial in range(5):
-        run_server(job_name=job_name +"_trial_" + str(trial), trial=trial, account="utw61ti")
+        run_server_curta(_crtuajob_name=job_name +"_trial_" + str(trial), trial=trial, account="utw61ti")
