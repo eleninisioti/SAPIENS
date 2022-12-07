@@ -41,11 +41,11 @@ def run_server(job_name, trial, gpu=False, time="20:00:00", long_run=False, acco
                 fh.writelines("#SBATCH --qos=qos_gpu-t4\n")
         else:
             fh.writelines("#SBATCH --account=imi@cpu\n")
-            fh.writelines(f"#SBATCH --ntasks=1\n")
+            fh.writelines(f"#SBATCH --ntasks=3cd ..\n")
 
             if long_run:
                 fh.writelines("#SBATCH --qos=qos_cpu-t4\n")
-        fh.writelines(f"#SBATCH --cpus-per-task=10\n")
+        fh.writelines(f"#SBATCH --cpus-per-task=20\n")
         fh.writelines("#SBATCH --job-name={}\n".format(job_name))
         fh.writelines("#SBATCH -o {}/{}_%j.out\n".format(logs_dir, job_name))
         fh.writelines("#SBATCH -e {}/{}_%j.err\n".format(logs_dir, job_name))

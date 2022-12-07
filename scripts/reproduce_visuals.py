@@ -546,11 +546,11 @@ def intergroup_alignment():
              projects = [os.path.join(projects_top_dir , o) for o in os.listdir(projects_top_dir )
                          if (os.path.isdir(os.path.join(projects_top_dir , o))) and ("plots" not in o and "data" not in o)]
 
-             diffs_df = measure_intergroup_alignment(projects)
-             pickle.dump(diffs_df, open(projects_top_dir + "/diff_df.pkl", "wb") )
+             total_df = measure_intergroup_alignment(projects)
+             pickle.dump(total_df, open(projects_top_dir + "/diff_df.pkl", "wb") )
 
              with open(projects_top_dir + "/diff_df.pkl", "rb") as f:
-                total_df = pickle.load(f)
+                #total_df = pickle.load(f)
                 total_df = total_df[total_df['pair'].isin(accept)]
 
                 columns_values_map = {"pair": accept_second}
